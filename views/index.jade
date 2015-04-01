@@ -1,5 +1,7 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  div(layout='column', tabindex='-1', role='main', flex)
+    md-toolbar.md-default-theme
+    md-content.md-padding.md-default-theme(flex)
+      h1 Expenses

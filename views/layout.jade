@@ -1,7 +1,16 @@
 doctype html
-html
+html(lang='en', ng-strict-di)
   head
     title= title
-    link(rel='stylesheet', href='/stylesheets/style.css')
-  body
+    if dev
+      link(rel='stylesheet', href='angular-material/angular-material.css')
+    else
+      link(rel='stylesheet', href='css/angular-material.min.css')
+  body(ng-app='expenses', layout='row')
     block content
+    if dev
+      script(src='angular/angular.js')
+      script(src='angular-animate/angular-animate.js')
+      script(src='angular-aria/angular-aria.js')
+      script(src='angular-material/angular-material.js')
+      script(src='expenses.js')
