@@ -1,7 +1,11 @@
 extends layout
 
 block content
-  div(layout='column', tabindex='-1', role='main', flex)
-    md-toolbar.md-default-theme
-    md-content.md-padding.md-default-theme(flex)
-      h1 Expenses
+  md-toolbar
+    div.md-toolbar-tools
+      md-button.md-icon-button
+        md-icon(md-svg-icon='navigation:menu')
+      h1
+        span Expenses
+  md-content.md-padding
+    ng-view
