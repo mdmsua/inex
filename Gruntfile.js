@@ -3,9 +3,15 @@ module.exports = function (grunt) {
     var path = require('path');
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        concat: {
+            build: {
+                src: ['app/dashboard/dashboard.js', 'app/dashboard/dashboard.controller.js', 'app/expenses.js'],
+                dest: 'build/expenses.js'
+            }
+        },
         uglify: {
             build: {
-                src: 'app/**/*.js',
+                src: 'build/expenses.js',
                 dest: 'public/js/expenses.min.js'
             }
         },
@@ -59,7 +65,44 @@ module.exports = function (grunt) {
             }
         },
         clean: {
-            public: ['public']
+            all: ['public', 'modules']
+        },
+        babel: {
+            options: {
+                sourceMap: true
+            },
+            modules: {
+                files: [{
+                    expand: true,
+                    cwd: 'harmony/backend',
+                    src: ['*.js'],
+                    dest: 'modules'
+                }]
+            }
+        },
+        watch: {
+            modules: {
+                files: ['harmony/backend/*.js'],
+                tasks: ['babel:modules']
+            },
+            backend: {
+                files: ['modules/*.js', 'specs/backend/*.js'],
+                tasks: ['jasmine_node:modules'],
+                options: {
+                    event: ['added', 'changed']
+                }
+            }
+        },
+        jasmine_node: {
+            options: {
+                forceExit: true
+            },
+            modules: {
+                options: {
+                    source: ['modules/*.js'],
+                    specFolders: ['specs/backend']
+                }
+            }
         }
     });
 
@@ -67,6 +110,11 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-jasmine');
+    grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-babel');
+    grunt.loadNpmTasks('grunt-jasmine-node');
 
-    grunt.registerTask('default', ['clean', 'uglify', 'copy']);
+    grunt.registerTask('default', ['clean', 'concat', 'uglify', 'copy', 'babel']);
 };

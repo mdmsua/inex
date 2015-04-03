@@ -32,3 +32,9 @@ bower_components
 
 # Public
 public/**
+
+# Build
+build
+
+# Babel transpiled modules
+modules
