@@ -1,20 +1,21 @@
 'use strict';
-var MongoDatabase = require('../../modules/mongo-database'),
+var Database = require('../../modules/database'),
     url = 'mongodb://localhost:27017/expenses-test';
 
-describe('MongoDatabase', function () {
+describe('Database', function () {
     var database;
 
-    beforeEach(function () {
-        database = new MongoDatabase(url);
-    });
-
     it('should instantiate with default url', function () {
+        database = new Database(url);
         expect(database.url).toBe(url);
     });
 
-    xit('should not instantiate without url', function () {
-        expect(new MongoDatabase).toThrow();
+    it('should not instantiate without url', function () {
+        try {
+            database = new Database();
+        } catch (error) {
+            expect(error.message).toBe('Database URL must be specified');
+        }
     });
 
     describe('connects to MongoDB and', function () {
@@ -32,5 +33,11 @@ describe('MongoDatabase', function () {
             expect(database.db).toBeTruthy();
             done();
         });
+
+        afterEach(function (done) {
+            database.close(function () {
+                done();
+            })
+        })
     });
 });
