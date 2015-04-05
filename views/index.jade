@@ -7,5 +7,9 @@ block content
         md-icon(md-svg-icon='navigation:menu')
       h1
         span Expenses
+        if auth
+            span Authenticated
+        else
+            span Anonymous
   md-content.md-padding
     ng-view

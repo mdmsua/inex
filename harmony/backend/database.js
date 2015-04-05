@@ -1,46 +1,125 @@
 'use strict';
 
-var MongoClient = require('mongodb').MongoClient;
+var client,
+    url,
+    db;
 
-function noResultCallback(error, callback) {
-    if (callback && typeof callback === 'function') {
-        return callback(error);
-    }
+function onConnect(resolve, reject) {
+    client.connect(url, (error, database) => {
+        if (error) {
+            reject(error);
+        }
+        else {
+            db = database;
+            resolve(database);
+        }
+    });
 }
 
-function resultCallback(error, result, callback) {
-    if (callback && typeof callback === 'function') {
-        return callback(error, result);
+function onClose(resolve, reject) {
+    if (db) {
+        db.close((error) => {
+            db = null;
+            if (error) {
+                reject(error);
+            } else {
+                resolve();
+            }
+        });
     }
+    resolve();
+}
+
+function getCollection(db, collection) {
+    return new Promise((resolve, reject) => {
+        db.collection(collection, (error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(result);
+            }
+        })
+    });
 }
 
 class Database {
-    constructor(url) {
-        if (url) {
-            this.url = url;
-            this.db = null;
+    constructor(_client, _url = process.env.MONGODB) {
+        if (_url) {
+            client = _client;
+            url = _url;
         } else {
             throw new Error('Database URL must be specified');
         }
     }
-    connect(callback) {
-        let that = this;
-        MongoClient.connect(this.url, (error, db) => {
-            if (!error) {
-                that.db = db;
+    open() {
+        return new Promise(onConnect);
+    }
+    close() {
+        return new Promise(onClose);
+    }
+    findOne(collection, query) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('Connection is closed'));
             }
-            return resultCallback(error, db, callback);
+            getCollection(db, collection).then((items) => {
+                items.findOne(query, (error, document) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(document);
+                    }
+                });
+            })
         });
     }
-    close(callback) {
-        if (this.db) {
-            let that = this;
-            this.db.close((error) => {
-                that.db = null;
-                return noResultCallback(error, callback);
-            });
-        }
-        return noResultCallback(null, callback);
+    insertOne(collection, document) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('Connection is closed'));
+            }
+            getCollection(db, collection).then((items) => {
+                items.insertOne(document, { w: 1 }, (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        if (result.insertedCount === 1) {
+                            resolve(result.ops[0]);
+                        } else {
+                            resolve(null);
+                        }
+                    }
+                });
+            })
+        });
+    }
+    findOneAndInsert(collection, query, document) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('Connection is closed'));
+            }
+            getCollection(db, collection).then((items) => {
+                items.findOne(query, (error, doc) => {
+                    if (error) {
+                        reject(error);
+                    } else if (doc) {
+                        resolve(doc);
+                    } else {
+                        items.insertOne(document, { w: 1 }, (error, result) => {
+                            if (error) {
+                                reject(error);
+                            } else {
+                                if (result.insertedCount === 1) {
+                                    resolve(result.ops[0]);
+                                } else {
+                                    resolve(null);
+                                }
+                            }
+                        });
+                    }
+                });
+            })
+        });
     }
 }
 
