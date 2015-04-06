@@ -38,12 +38,12 @@ function getCollection(db, collection) {
             } else {
                 resolve(result);
             }
-        })
+        });
     });
 }
 
 class Database {
-    constructor(_client, _url = process.env.MONGODB) {
+    constructor(_client, _url) {
         if (_url) {
             client = _client;
             url = _url;
@@ -51,10 +51,10 @@ class Database {
             throw new Error('Database URL must be specified');
         }
     }
-    open() {
+    static open() {
         return new Promise(onConnect);
     }
-    close() {
+    static close() {
         return new Promise(onClose);
     }
     findOne(collection, query) {
@@ -70,7 +70,7 @@ class Database {
                         resolve(document);
                     }
                 });
-            })
+            });
         });
     }
     insertOne(collection, document) {
@@ -83,14 +83,14 @@ class Database {
                     if (error) {
                         reject(error);
                     } else {
-                        if (result.insertedCount === 1) {
+                        if (result.ops.length === 1) {
                             resolve(result.ops[0]);
                         } else {
                             resolve(null);
                         }
                     }
                 });
-            })
+            });
         });
     }
     findOneAndInsert(collection, query, document) {
@@ -109,7 +109,7 @@ class Database {
                             if (error) {
                                 reject(error);
                             } else {
-                                if (result.insertedCount === 1) {
+                                if (result.ops.length === 1) {
                                     resolve(result.ops[0]);
                                 } else {
                                     resolve(null);
@@ -118,7 +118,7 @@ class Database {
                         });
                     }
                 });
-            })
+            });
         });
     }
 }

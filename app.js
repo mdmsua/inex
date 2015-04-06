@@ -17,7 +17,7 @@ var index = require('./routes/index'),
 
 var database = new Database(process.env.MONGODB);
 
-database.open();
+Database.open();
 
 passport.use(new FacebookStrategy({
         clientID: process.env.FACEBOOK_APP_ID,

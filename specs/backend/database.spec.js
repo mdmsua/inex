@@ -1,39 +1,15 @@
 'use strict';
+/* globals describe, it, expect, beforeEach, afterEach */
 var Database = require('../../modules/database'),
+    Client = process.env.TEST === 'integration' ? require('mongodb').MongoClient : require('./mocks/client.mock'),
     url = 'mongodb://localhost:27017/expenses-test';
 
-function Collection() {
-    this.items = [];
-    this.findOne = function (item, callback) {
-        return callback(null, null);
-    };
-    this.insertOne = function (item, options, callback) {
-        this.items.push(item);
-        callback(null);
-    }
-}
+describe(process.env.TEST === 'integration' ? '(Integration)' : '(Unit)' + 'Database ', function () {
+    var database;
 
-function Db() {
-    this._collection = new Collection();
-    this.collection = function (name, callback) {
-        return callback(name, this._collection);
-    }
-}
-
-function Client() {
-    this.db = new Db();
-    this.connect = function (url, callback) {
-        return callback(null, this.db);
-    }
-}
-
-describe('Database', function () {
-    var database,
-        client = new Client();
-
-    it('should instantiate with default url', function () {
+    beforeEach(function () {
+        var client = new Client();
         database = new Database(client, url);
-        //expect(database.url).toBe(url);
     });
 
     it('should not instantiate without url', function () {
@@ -48,21 +24,15 @@ describe('Database', function () {
         var error = null;
 
         beforeEach(function (done) {
-            database.open().then(function () {
-                done()
+            Database.open().then(function () {
+                done();
             }).catch(function (err) {
                 error = err;
             });
         });
 
-        it('should succeed', function (done) {
-            expect(error).toBeNull();
-            //expect(database.db).toBeTruthy();
-            done();
-        });
-
         it('should not find a document in items collection', function (done) {
-            database.findOne('items', {foo: "bar"}).then(function (document) {
+            database.findOne('items', {foo: 'bar'}).then(function (document) {
                 expect(error).toBeNull();
                 expect(document).toBeNull();
                 done();
@@ -76,7 +46,7 @@ describe('Database', function () {
             database.insertOne('items', {foo: 'bar'}).then(function (document) {
                 expect(error).toBeNull();
                 expect(document).toBeTruthy();
-                expect(document.foo).toBe("bar");
+                expect(document.foo).toBe('bar');
                 expect(document._id).toBeTruthy();
                 done();
             }).catch(function (error) {
@@ -95,6 +65,26 @@ describe('Database', function () {
             }).catch(function (error) {
                 expect(error).toBeUndefined();
                 done();
+            });
+        });
+
+        afterEach(function (done) {
+            if (typeof Client.connect === 'undefined') {
+                return done();
+            }
+            Client.connect(url, function (error, db) {
+                if (error) {
+                    console.error(error);
+                } else {
+                    if (db.hasOwnProperty('domain')) {
+                        db.dropDatabase(function (error) {
+                            if (error) {
+                                console.log(error);
+                            }
+                            done();
+                        });
+                    }
+                }
             });
         });
     });
