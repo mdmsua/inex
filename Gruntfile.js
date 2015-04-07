@@ -4,13 +4,13 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         concat: {
-            build: {
+            app: {
                 src: ['app/dashboard/dashboard.js', 'app/dashboard/dashboard.controller.js', 'app/expenses.js'],
                 dest: 'build/expenses.js'
             }
         },
         uglify: {
-            build: {
+            app: {
                 src: 'build/expenses.js',
                 dest: 'public/js/expenses.min.js'
             }
@@ -25,6 +25,18 @@ module.exports = function (grunt) {
                     {
                         expand: true, flatten: true, dest: 'public/js', filter: 'isFile',
                         src: ['bower_components/**/*.min.js', '!bower_components/angular-material/modules/**']
+                    },
+                    {
+                        expand: true, flatten: true, dest: 'public/css', filter: 'isFile',
+                        src: ['build/*.css']
+                    },
+                    {
+                        expand: true, flatten: true, dest: 'public/fonts', filter: 'isFile',
+                        src: ['bower_components/**/fonts/**']
+                    },
+                    {
+                        expand: true, flatten: true, dest: 'public/img', filter: 'isFile',
+                        src: ['assets/img/**']
                     }
                 ]
             },
@@ -65,7 +77,9 @@ module.exports = function (grunt) {
             }
         },
         clean: {
-            all: ['public', 'modules']
+            all: ['public', 'modules'],
+            public: ['public'],
+            modules: ['modules']
         },
         babel: {
             options: {
@@ -103,6 +117,13 @@ module.exports = function (grunt) {
                     specFolders: ['specs/backend']
                 }
             }
+        },
+        cssmin: {
+            assets: {
+                files: {
+                    'build/landing.min.css': 'assets/css/landing.css'
+                }
+            }
         }
     });
 
@@ -113,9 +134,11 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jasmine');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-concat');
+    grunt.loadNpmTasks('grunt-contrib-less');
+    grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-babel');
     grunt.loadNpmTasks('grunt-jasmine-node');
 
-    grunt.registerTask('default', ['clean', 'concat', 'uglify', 'copy', 'babel']);
+    grunt.registerTask('default', ['clean:all', 'concat', 'uglify', 'cssmin', 'copy', 'babel']);
     grunt.registerTask('test', ['jasmine_node']);
 };

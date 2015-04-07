@@ -51,12 +51,15 @@ class Database {
             throw new Error('Database URL must be specified');
         }
     }
+
     static open() {
         return new Promise(onConnect);
     }
+
     static close() {
         return new Promise(onClose);
     }
+
     findOne(collection, query) {
         return new Promise((resolve, reject) => {
             if (!db) {
@@ -73,13 +76,14 @@ class Database {
             });
         });
     }
+
     insertOne(collection, document) {
         return new Promise((resolve, reject) => {
             if (!db) {
                 reject(new Error('Connection is closed'));
             }
             getCollection(db, collection).then((items) => {
-                items.insertOne(document, { w: 1 }, (error, result) => {
+                items.insertOne(document, {w: 1}, (error, result) => {
                     if (error) {
                         reject(error);
                     } else {
@@ -93,6 +97,7 @@ class Database {
             });
         });
     }
+
     findOneAndInsert(collection, query, document) {
         return new Promise((resolve, reject) => {
             if (!db) {
@@ -105,7 +110,7 @@ class Database {
                     } else if (doc) {
                         resolve(doc);
                     } else {
-                        items.insertOne(document, { w: 1 }, (error, result) => {
+                        items.insertOne(document, {w: 1}, (error, result) => {
                             if (error) {
                                 reject(error);
                             } else {
@@ -116,6 +121,23 @@ class Database {
                                 }
                             }
                         });
+                    }
+                });
+            });
+        });
+    }
+
+    findOneAndReplace(collection, query, document) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('Connection is closed'));
+            }
+            getCollection(db, collection).then((items) => {
+                items.findOneAndReplace(query, document, {upsert: true, returnOriginal: false}, (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result.value);
                     }
                 });
             });

@@ -1,28 +1,30 @@
 doctype html
 html(lang='en', ng-strict-di)
-  head
-    base(href='/')
-    title= title
-    if dev
-      link(rel='stylesheet', href='angular-material/angular-material.css')
-    else
-      link(rel='stylesheet', href='css/angular-material.min.css')
-    meta(name='viewport', content='initial-scale=1, maximum-scale=1')
-  body(layout='column', ng-app='expenses')
-    block content
-    if dev
-      script(src='angular/angular.js')
-      script(src='angular-animate/angular-animate.js')
-      script(src='angular-aria/angular-aria.js')
-      script(src='angular-route/angular-route.js')
-      script(src='angular-material/angular-material.js')
-      script(src='dashboard/dashboard.js')
-      script(src='dashboard/dashboard.controller.js')
-      script(src='expenses.js')
-    else
-      script(src='js/angular.min.js')
-      script(src='js/angular-animate.min.js')
-      script(src='js/angular-aria.min.js')
-      script(src='js/angular-route.min.js')
-      script(src='js/angular-material.min.js')
-      script(src='js/expenses.min.js')
+    head
+        meta(charset='utf-8')
+        meta(http-equiv='X-UA-Compatible', content='IE=edge')
+        meta(name='viewport', content='initial-scale=1, maximum-scale=1')
+        base(href='/')
+        title= title
+        if dev
+            link(rel='stylesheet', href='angular-material/angular-material.css')
+        else
+            link(rel='stylesheet', href='css/angular-material.min.css')
+    body(layout='column', ng-app='expenses')
+        block content
+        if dev
+            script(src='angular/angular.js')
+            script(src='angular-animate/angular-animate.js')
+            script(src='angular-aria/angular-aria.js')
+            script(src='angular-route/angular-route.js')
+            script(src='angular-material/angular-material.js')
+            script(src='dashboard/dashboard.js')
+            script(src='dashboard/dashboard.controller.js')
+            script(src='expenses.js')
+        else
+            script(src='js/angular.min.js')
+            script(src='js/angular-animate.min.js')
+            script(src='js/angular-aria.min.js')
+            script(src='js/angular-route.min.js')
+            script(src='js/angular-material.min.js')
+            script(src='js/expenses.min.js')

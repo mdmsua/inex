@@ -1,9 +1,14 @@
 'use strict';
-var express = require('express'),
-    router = express.Router(),
+var router = require('express').Router(),
     passport = require('passport');
 
-router.get('/facebook/', passport.authenticate('facebook'));
-router.get('/facebook/callback', passport.authenticate('facebook', { successRedirect: '/' }));
+function logout(req, res) {
+    req.logout();
+    res.redirect('/');
+}
+
+router.get('/facebook/', passport.authenticate('facebook', {scope: ['email', 'user_about_me']}));
+router.get('/facebook/callback', passport.authenticate('facebook', {successRedirect: '/'}));
+router.get('/logout', logout);
 
 module.exports = router;

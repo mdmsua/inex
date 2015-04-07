@@ -68,6 +68,19 @@ describe(process.env.TEST === 'integration' ? '(Integration)' : '(Unit)' + 'Data
             });
         });
 
+        xit('should update a document if it was found and insert otherwise', function (done) {
+            database.findOneAndUpdate('items', {$and: [{foo: 'bar'}]}, {foo: 'bar'}).then(function (document) {
+                expect(error).toBeNull();
+                expect(document).toBeTruthy();
+                expect(document.foo).toBe('bar');
+                expect(document._id).toBeTruthy();
+                done();
+            }).catch(function (error) {
+                expect(error).toBeUndefined();
+                done();
+            });
+        });
+
         afterEach(function (done) {
             if (typeof Client.connect === 'undefined') {
                 return done();

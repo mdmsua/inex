@@ -1,14 +1,12 @@
 'use strict';
 var express = require('express'),
     router = express.Router(),
-    app = express(),
-    passport = require('passport');
+    app = express();
 
 router.get('/', function (req, res) {
-    res.render('index', {
+    res.render(req.isAuthenticated() ? 'index' : 'landing', {
         title: 'Expenses',
-        dev: app.get('env') === 'development',
-        auth: typeof req.user !== 'undefined'
+        dev: app.get('env') === 'development'
     });
 });
 

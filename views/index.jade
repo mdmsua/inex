@@ -1,15 +1,13 @@
 extends layout
 
 block content
-  md-toolbar
-    div.md-toolbar-tools
-      md-button.md-icon-button
-        md-icon(md-svg-icon='navigation:menu')
-      h1
-        span Expenses
-        if auth
-            span Authenticated
-        else
-            span Anonymous
-  md-content.md-padding
-    ng-view
+    md-toolbar
+        div.md-toolbar-tools
+            md-button.md-icon-button
+                md-icon(md-svg-icon='navigation:menu')
+            h1
+                span &nbsp;Expenses
+            span(flex)
+            md-button(href='/auth/logout') Logout
+    md-content.md-padding
+        ng-view
