@@ -8,14 +8,12 @@ let FacebookStrategy = require('passport-facebook').Strategy,
 let facebook = (accessToken, refreshToken, profile, done) => {
     delete profile._raw;
     delete profile._json;
-    console.log(profile);
     database.findOneAndReplace('profile', {
         $and: [{
             provider: profile.provider,
             id: profile.id
         }]
     }, profile).then((user) => {
-        console.log(user);
         done(null, user);
     }).catch((error) => {
         done(error);

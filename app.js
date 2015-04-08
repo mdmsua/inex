@@ -6,6 +6,8 @@ var express = require('express'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     session = require('express-session'),
+    redis = require('redis'),
+    RedisStore = require('connect-redis')(session),
     passport = require('passport'),
     debug = require('debug')('expenses:server'),
     MongoClient = require('mongodb').MongoClient,
@@ -28,7 +30,14 @@ function authorize(req, res, next) {
     res.redirect('/');
 }
 
-var app = express();
+var app = express(),
+    options = {
+        client: redis.createClient(),
+        host: process.env.REDIS_HOST,
+        port: process.env.REDIS_PORT,
+        pass: process.env.REDIS_PASS,
+        prefix: 'session:'
+    };
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
@@ -38,13 +47,12 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
-app.use(session({secret: 'expenses', resave: false, saveUninitialized: false}));
+app.use(session({secret: 'coin-stack', store: new RedisStore(options)}));
+app.use(express.static(path.join(__dirname, 'public')));
 if (app.get('env') === 'development') {
     app.use(express.static(path.join(__dirname, 'app')));
     app.use(express.static(path.join(__dirname, 'assets')));
     app.use(express.static(path.join(__dirname, 'bower_components')));
-} else {
-    app.use(express.static(path.join(__dirname, 'public')));
 }
 
 app.use(passport.initialize());

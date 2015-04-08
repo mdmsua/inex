@@ -3,7 +3,9 @@ var router = require('express').Router(),
     passport = require('passport');
 
 function logout(req, res) {
-    req.logout();
+    if (req.isAuthenticated()) {
+        req.logout();
+    }
     res.redirect('/');
 }
 

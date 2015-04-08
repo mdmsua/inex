@@ -83,7 +83,7 @@
   "yui"           : false,    // Yahoo User Interface
 
   // Custom Globals
-  "globals"       : { "angular": true },        // additional predefined global variables
+  "globals"       : { "angular": true, "window": true, "location": true, "history": true },        // additional predefined global variables
 
   // Ignore paths
   "ignorePaths"   : [ "specs" ]                 // test specs
