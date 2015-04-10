@@ -8,13 +8,14 @@ let FacebookStrategy = require('passport-facebook').Strategy,
 let facebook = (accessToken, refreshToken, profile, done) => {
     delete profile._raw;
     delete profile._json;
-    database.findOneAndReplace('profile', {
-        $and: [{
-            provider: profile.provider,
-            id: profile.id
-        }]
-    }, profile).then((user) => {
-        done(null, user);
+    var provider = profile.provider,
+        query = {},
+        setop = {};
+    setop[provider] = profile;
+    query[provider] = {};
+    query[provider]['id'] = profile.id;
+    database.findOneAndUpdate('users', query, {$set: setop}).then((user) => {
+        done(null, user ? user[provider] : null);
     }).catch((error) => {
         done(error);
     });
@@ -27,11 +28,13 @@ module.exports = (passport, db) => {
         done(null, [user.provider, user.id].join(split));
     });
 
-    passport.deserializeUser((id, done) => {
-        var provider = id.split(split)[0],
-            username = id.split(split)[1];
-        db.findOne('profile', {$and: [{provider: provider, id: username}]}).then((user) => {
-            done(null, user);
+    passport.deserializeUser((value, done) => {
+        var parts = value.split(split),
+            provider = parts[0],
+            query = {};
+        query[`${provider}.id`] = parts[1];
+        db.findOne('users', query).then((user) => {
+            done(null, user ? user[provider] : null);
         }).catch((error) => {
             done(error);
         });

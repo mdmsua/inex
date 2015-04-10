@@ -143,6 +143,23 @@ class Database {
             });
         });
     }
+
+    findOneAndUpdate(collection, query, update) {
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('Connection is closed'));
+            }
+            getCollection(db, collection).then((items) => {
+                items.findOneAndUpdate(query, update, {upsert: true, returnOriginal: false}, (error, result) => {
+                    if (error) {
+                        reject(error);
+                    } else {
+                        resolve(result.value);
+                    }
+                });
+            });
+        });
+    }
 }
 
 module.exports = Database;

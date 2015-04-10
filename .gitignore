@@ -38,3 +38,6 @@ build
 
 # Babel transpiled modules
 modules
+
+# Components
+components

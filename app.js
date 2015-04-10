@@ -9,7 +9,7 @@ var express = require('express'),
     redis = require('redis'),
     RedisStore = require('connect-redis')(session),
     passport = require('passport'),
-    debug = require('debug')('expenses:server'),
+    //debug = require('debug')('expenses:server'),
     MongoClient = require('mongodb').MongoClient,
     Database = require('./modules/database');
 
@@ -39,6 +39,11 @@ var app = express(),
         prefix: 'session:'
     };
 
+function env(req, res, next) {
+    res.locals.dev = app.get('env') === 'development';
+    next();
+}
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -48,26 +53,25 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(session({secret: 'coin-stack', store: new RedisStore(options)}));
-app.use(express.static(path.join(__dirname, 'public')));
 if (app.get('env') === 'development') {
-    app.use(express.static(path.join(__dirname, 'app')));
-    app.use(express.static(path.join(__dirname, 'assets')));
+    app.use(express.static(path.join(__dirname, 'build')));
     app.use(express.static(path.join(__dirname, 'bower_components')));
+} else {
+    app.use(express.static(path.join(__dirname, 'public')));
 }
 
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/', index);
-app.use('/template', template);
+app.use('/', env, index);
 app.use('/auth', auth);
+
+// error handlers
 
 // catch 404 and forward to error handler
 app.use(function (req, res) {
-    res.render('index', {title: 'Expenses', dev: app.get('env') === 'development'});
+    res.redirect('/404');
 });
-
-// error handlers
 
 // development error handler
 // will print stacktrace
