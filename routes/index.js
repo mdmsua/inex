@@ -10,10 +10,4 @@ router.get('/', function (req, res) {
     });
 });
 
-router.get('/404', function (req, res) {
-   res.render ('404', {
-       title: 'Page not found'
-   });
-});
-
 module.exports = router;

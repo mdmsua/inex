@@ -97,7 +97,19 @@ IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
 :: 2. Select node version
 call :SelectNodeVersion
 
-:: 3. Install npm packages
+:: 3. Clean node and bower packages
+pushd "%DEPLOYMENT_TARGET%"
+echo Cleaning node_modules.
+rm -rf node_modules
+echo Cleaning bower_components.
+rm -rf bower_components
+echo Running npm cache clean.
+call :ExecuteCmd !NPM_CMD! cache clean
+
+IF !ERRORLEVEL! NEQ 0 goto error
+popd
+
+:: 4. Install npm packages
 IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
   pushd "%DEPLOYMENT_TARGET%"
   call :ExecuteCmd !NPM_CMD! install --development
@@ -105,7 +117,7 @@ IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
   popd
 )
 
-:: 4. Install bower packages
+:: 5. Install bower packages
 IF EXIST "%DEPLOYMENT_TARGET%\bower.json" (
   pushd "%DEPLOYMENT_TARGET%"
   call :ExecuteCmd "%NODE_EXE%" node_modules\bower\bin\bower install
@@ -113,7 +125,7 @@ IF EXIST "%DEPLOYMENT_TARGET%\bower.json" (
   popd
 )
 
-:: 5. Run grunt
+:: 6. Run grunt
 IF EXIST "%DEPLOYMENT_TARGET%\Gruntfile.js" (
   pushd "%DEPLOYMENT_TARGET%"
   call :ExecuteCmd "%NODE_EXE%" node_modules\grunt-cli\bin\grunt

@@ -9,7 +9,7 @@ var express = require('express'),
     redis = require('redis'),
     RedisStore = require('connect-redis')(session),
     passport = require('passport'),
-    //debug = require('debug')('expenses:server'),
+//debug = require('debug')('expenses:server'),
     MongoClient = require('mongodb').MongoClient,
     Database = require('./modules/database');
 
@@ -70,7 +70,7 @@ app.use('/auth', auth);
 
 // catch 404 and forward to error handler
 app.use(function (req, res) {
-    res.redirect('/404');
+    res.render('failure', {title: 'Page not found'});
 });
 
 // development error handler
