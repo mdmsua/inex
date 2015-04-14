@@ -3,6 +3,11 @@ module.exports = function (grunt) {
     var path = require('path');
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
+        clean: {
+            all: ['public', 'modules'],
+            public: ['public'],
+            modules: ['modules']
+        },
         concat: {
             js: {
                 src: ['app/facebook.js'],
@@ -19,13 +24,21 @@ module.exports = function (grunt) {
                 dest: 'public/js/expenses.min.js'
             }
         },
+        cssmin: {
+            main: {
+                files: {
+                    'public/css/landing.min.css': 'assets/css/landing.css',
+                    'public/css/expenses.min.css': 'build/css/expenses.css'
+                }
+            }
+        },
         copy: {
             main: {
                 files: [
-                    {
-                        expand: true, dest: 'components', filter: 'isFile', cwd: 'bower_components',
-                        src: ['**/*.html', 'polymer/polymer.js', '!**/{metadata,demo,index}.html', '!**/test/**', '!polymer-test-tools/**']
-                    },
+                    //{
+                    //    expand: true, dest: 'components', filter: 'isFile', cwd: 'bower_components',
+                    //    src: ['**/*.html', 'polymer/polymer.js', '!**/{metadata,demo,index}.html', '!**/test/**', '!polymer-test-tools/**']
+                    //},
                     {
                         expand: true, flatten: true, dest: 'public/js', filter: 'isFile',
                         src: ['bower_components/**/*.min.js']
@@ -35,12 +48,8 @@ module.exports = function (grunt) {
                         src: ['bower_components/**/*.min.css']
                     },
                     {
-                        expand: true, flatten: true, dest: 'public/css', filter: 'isFile',
-                        src: ['build/css/*.min.css']
-                    },
-                    {
                         expand: true, flatten: true, dest: 'public/fonts', filter: 'isFile',
-                        src: ['build/fonts/**']
+                        src: ['bower_components/**/fonts/**']
                     },
                     {
                         expand: true, flatten: true, dest: 'public/img', filter: 'isFile',
@@ -100,11 +109,6 @@ module.exports = function (grunt) {
                 }
             }
         },
-        clean: {
-            all: ['public', 'modules'],
-            public: ['public'],
-            modules: ['modules']
-        },
         babel: {
             options: {
                 sourceMap: true
@@ -145,14 +149,6 @@ module.exports = function (grunt) {
                     specFolders: ['specs/backend']
                 }
             }
-        },
-        cssmin: {
-            assets: {
-                files: {
-                    'build/landing.min.css': 'assets/css/landing.css',
-                    'build/expenses.min.css': 'build/css/expenses.css'
-                }
-            }
         }
     });
 
@@ -168,6 +164,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-babel');
     grunt.loadNpmTasks('grunt-jasmine-node');
 
-    grunt.registerTask('default', ['clean:all', 'concat', 'uglify', 'cssmin', 'copy', 'babel']);
+    grunt.registerTask('default', ['clean:all', 'concat', 'uglify', 'cssmin', 'copy:main', 'babel']);
     grunt.registerTask('test', ['jasmine_node']);
 };
