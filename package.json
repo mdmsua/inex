@@ -52,5 +52,6 @@
   "bugs": {
     "url": "https://github.com/mdmsua/expenses/issues"
   },
-  "homepage": "https://github.com/mdmsua/expenses"
+  "homepage": "https://github.com/mdmsua/expenses",
+  "engines": {"node": "0.12.0"}
 }

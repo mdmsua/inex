@@ -100,12 +100,11 @@ call :SelectNodeVersion
 :: 3. Clean node and bower packages
 pushd "%DEPLOYMENT_TARGET%"
 echo Cleaning node_modules.
-rm -rf node_modules
+rmdir node_modules /s /q
 echo Cleaning bower_components.
-rm -rf bower_components
+rmdir bower_components /s /q
 echo Running npm cache clean.
 call :ExecuteCmd !NPM_CMD! cache clean
-
 IF !ERRORLEVEL! NEQ 0 goto error
 popd
 
