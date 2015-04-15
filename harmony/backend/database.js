@@ -1,38 +1,39 @@
 'use strict';
 
-var client,
-    url,
-    db;
+let client = Symbol('client'),
+    url = Symbol('url'),
+    db = Symbol('db');
 
-function onConnect(resolve, reject) {
-    client.connect(url, (error, database) => {
-        if (error) {
-            reject(error);
+let collectionInternal = (database, name) =>
+    new Promise((resolve, reject) => {
+        if (database) {
+            database.collection(name, (error, collection) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(collection);
+                }
+            });
         }
         else {
-            db = database;
-            resolve(database);
+            reject(new Error('Database is closed'));
         }
     });
-}
 
-function onClose(resolve, reject) {
-    if (db) {
-        db.close((error) => {
-            db = null;
+let findOneInternal = (collection, query) =>
+    new Promise((resolve, reject) => {
+        collection.findOne(query, (error, document) => {
             if (error) {
                 reject(error);
             } else {
-                resolve();
+                resolve(document);
             }
         });
-    }
-    resolve();
-}
+    });
 
-function getCollection(db, collection) {
-    return new Promise((resolve, reject) => {
-        db.collection(collection, (error, result) => {
+let insertOneInternal = (collection, document, options = null) =>
+    new Promise((resolve, reject) => {
+        collection.insertOne(document, options, (error, result) => {
             if (error) {
                 reject(error);
             } else {
@@ -40,70 +41,79 @@ function getCollection(db, collection) {
             }
         });
     });
-}
+
+let findOneAndUpdateInternal = (collection, filter, update, options = {}) =>
+    new Promise((resolve, reject) => {
+        console.log(filter, update);
+        collection.findOneAndUpdate(filter, update, options, (error, result) => {
+            if (error) {
+                reject(error);
+            } else {
+                console.log(result);
+                resolve(result);
+            }
+        });
+    });
 
 class Database {
-    constructor(_client, _url) {
-        if (_url) {
-            client = _client;
-            url = _url;
-        } else {
+    constructor(accessClient, accessUrl) {
+        if (!accessUrl) {
             throw new Error('Database URL must be specified');
         }
+        this[client] = accessClient;
+        this[url] = accessUrl;
+        this[db] = null;
     }
 
-    static open() {
-        return new Promise(onConnect);
+    open() {
+        return new Promise((resolve, reject) => {
+            this[client].connect(this[url], (error, database) => {
+                if (error) {
+                    reject(error);
+                }
+                else {
+                    this[db] = database;
+                    resolve();
+                }
+            });
+        });
     }
 
-    static close() {
-        return new Promise(onClose);
+    close() {
+        return new Promise((resolve, reject) => {
+            this[db].close(error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 
     findOne(collection, query) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                reject(new Error('Connection is closed'));
-            }
-            getCollection(db, collection).then((items) => {
-                items.findOne(query, (error, document) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(document);
-                    }
-                });
-            });
-        });
+        return collectionInternal(this[db], collection)
+            .then(items => findOneInternal(items, query));
     }
 
     insertOne(collection, document) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                reject(new Error('Connection is closed'));
-            }
-            getCollection(db, collection).then((items) => {
-                items.insertOne(document, {w: 1}, (error, result) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        if (result.ops.length === 1) {
-                            resolve(result.ops[0]);
-                        } else {
-                            resolve(null);
-                        }
-                    }
-                });
-            });
-        });
+        return collectionInternal(this[db], collection)
+            .then(items => insertOneInternal(items, document))
+            .then(result => result.ops[0]);
     }
 
-    findOneAndInsert(collection, query, document) {
+    insertOneQuick(collection, document) {
+        return collectionInternal(this[db], collection)
+            .then(items => insertOneInternal(items, document, {w: 0}))
+            .then(result => result.result && result.result.ok === 1);
+    }
+
+    findOneAndInsert(collectionInternal, query, document) {
         return new Promise((resolve, reject) => {
             if (!db) {
                 reject(new Error('Connection is closed'));
             }
-            getCollection(db, collection).then((items) => {
+            collectionInternal(db, collectionInternal).then((items) => {
                 items.findOne(query, (error, doc) => {
                     if (error) {
                         reject(error);
@@ -127,12 +137,12 @@ class Database {
         });
     }
 
-    findOneAndReplace(collection, query, document) {
+    findOneAndReplace(collectionInternal, query, document) {
         return new Promise((resolve, reject) => {
             if (!db) {
                 reject(new Error('Connection is closed'));
             }
-            getCollection(db, collection).then((items) => {
+            collectionInternal(db, collectionInternal).then((items) => {
                 items.findOneAndReplace(query, document, {upsert: true, returnOriginal: false}, (error, result) => {
                     if (error) {
                         reject(error);
@@ -144,21 +154,10 @@ class Database {
         });
     }
 
-    findOneAndUpdate(collection, query, update) {
-        return new Promise((resolve, reject) => {
-            if (!db) {
-                reject(new Error('Connection is closed'));
-            }
-            getCollection(db, collection).then((items) => {
-                items.findOneAndUpdate(query, update, {upsert: true, returnOriginal: false}, (error, result) => {
-                    if (error) {
-                        reject(error);
-                    } else {
-                        resolve(result.value);
-                    }
-                });
-            });
-        });
+    findOneAndUpdate(collection, filter, update, options) {
+        return collectionInternal(this[db], collection)
+            .then(items => findOneAndUpdateInternal(items, filter, update, options))
+            .then(result => result.value);
     }
 }
 

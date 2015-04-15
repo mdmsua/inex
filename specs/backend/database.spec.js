@@ -1,15 +1,60 @@
 'use strict';
 /* globals describe, it, expect, beforeEach, afterEach */
-var Database = require('../../modules/database'),
+var Q = require('Q'),
+    Database = require('../../modules/database'),
     Client = process.env.TEST === 'integration' ? require('mongodb').MongoClient : require('./mocks/client.mock'),
     url = 'mongodb://localhost:27017/expenses-test';
 
-describe(process.env.TEST === 'integration' ? '(Integration)' : '(Unit)' + 'Database ', function () {
-    var database;
+function connect() {
+    var deferred = Q.defer();
+    Client.connect(url, function (error, db) {
+        if (error) {
+            deferred.reject(error);
+        } else {
+            deferred.resolve(db);
+        }
+    });
+    return deferred.promise;
+}
 
-    beforeEach(function () {
-        var client = new Client();
+function collection(db, name) {
+    var deferred = Q.defer();
+    db.collection(name, function (error, collection) {
+        if (error) {
+            deferred.reject(error);
+        }
+        else {
+            deferred.resolve(collection);
+        }
+    });
+    return deferred.promise;
+}
+
+function insertOne(collection, item) {
+    var deferred = Q.defer();
+    collection.insertOne(item, function (error) {
+        if (error) {
+            deferred.reject(error);
+        } else {
+            deferred.resolve();
+        }
+    });
+    return deferred.promise;
+}
+
+describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' Database', function () {
+    var client = new Client(),
         database = new Database(client, url);
+
+    beforeEach(function (done) {
+        Client.connect(url, function (error, db) {
+            if (db) {
+                db.dropCollection('items', function () {
+                    console.log('beforeEach cleanup');
+                    done();
+                });
+            }
+        });
     });
 
     it('should not instantiate without url', function () {
@@ -20,85 +65,234 @@ describe(process.env.TEST === 'integration' ? '(Integration)' : '(Unit)' + 'Data
         }
     });
 
-    describe('connects to MongoDB and', function () {
-        var error = null;
-
-        beforeEach(function (done) {
-            Database.open().then(function () {
+    it('should find a document in a collection', function (done) {
+        connect()
+            .then(function (db) {
+                return collection(db, 'items')
+            })
+            .then(function (collection) {
+                return insertOne(collection, {foo: 'bar'});
+            })
+            .then(function () {
+                return database.open()
+            })
+            .then(function () {
+                return database.findOne('items', {foo: 'bar'});
+            })
+            .then(function (document) {
+                expect(document).toBeTruthy();
+                expect(document.foo).toBe('bar');
+                expect(document._id).toBeTruthy();
+            })
+            .then(function () {
+                return database.close();
+            })
+            .done(function () {
                 done();
-            }).catch(function (err) {
-                error = err;
             });
-        });
+    });
 
-        it('should not find a document in items collection', function (done) {
-            database.findOne('items', {foo: 'bar'}).then(function (document) {
-                expect(error).toBeNull();
+    it('should not find a document in a collection', function (done) {
+        connect()
+            .then(function (db) {
+                return collection(db, 'items')
+            })
+            .then(function (collection) {
+                return insertOne(collection, {foo: 'bar'});
+            })
+            .then(function () {
+                return database.open()
+            })
+            .then(function () {
+                return database.findOne('items', {foo: 'baz'})
+            })
+            .then(function (document) {
                 expect(document).toBeNull();
-                done();
-            }).catch(function (error) {
-                expect(error).toBeUndefined();
+            })
+            .then(function () {
+                return database.close();
+            })
+            .done(function () {
                 done();
             });
-        });
+    });
 
-        it('should insert one document to the items collection', function (done) {
-            database.insertOne('items', {foo: 'bar'}).then(function (document) {
+    it('should insert one document to a collection', function (done) {
+        database.open()
+            .then(function () {
+                return database.insertOne('items', {foo: 'bar'})
+            })
+            .then(function (document) {
+                expect(document).toEqual(jasmine.objectContaining({foo: 'bar'}));
+            })
+            .then(function () {
+                database.close();
+            })
+            .then(function () {
+                done();
+            });
+    });
+
+    it('should insert one document to a collection without write concern', function (done) {
+        database.open()
+            .then(function () {
+                return database.insertOneQuick('items', {foo: 'bar'})
+            })
+            .then(function (result) {
+                expect(typeof result).toBe('boolean');
+            })
+            .then(function () {
+                database.close();
+            })
+            .then(function () {
+                done();
+            });
+    });
+
+    it('should find one document, update it, and return null', function (done) {
+        database.open()
+            .then(function () {
+                return database.findOneAndUpdate('items', {foo: 'bar'}, {$set: {foo: 'baz'}});
+            })
+            .then(function (result) {
+                expect(result).toBeNull();
+            })
+            .then(function () {
+                database.close();
+            })
+            .then(function () {
+                done();
+            })
+            .catch(function (error) {
                 expect(error).toBeNull();
-                expect(document).toBeTruthy();
-                expect(document.foo).toBe('bar');
-                expect(document._id).toBeTruthy();
-                done();
-            }).catch(function (error) {
-                expect(error).toBeUndefined();
-                done();
             });
-        });
+    });
 
-        it('should insert a document if it was not found', function (done) {
-            database.findOneAndInsert('items', {$and: [{foo: 'bar'}]}, {foo: 'bar'}).then(function (document) {
+    it('should find one document, upsert it, and return original', function (done) {
+        database.open()
+            .then(function () {
+                return database.findOneAndUpdate('items', {foo: 'bar'}, {$set: {foo: 'baz'}}, {upsert: true});
+            })
+            .then(function (result) {
+                expect(result).toBeNull();
+            })
+            .then(function () {
+                database.close();
+            })
+            .catch(function (error) {
                 expect(error).toBeNull();
-                expect(document).toBeTruthy();
-                expect(document.foo).toBe('bar');
-                expect(document._id).toBeTruthy();
-                done();
-            }).catch(function (error) {
-                expect(error).toBeUndefined();
+            })
+            .then(function () {
                 done();
             });
-        });
+    });
 
-        xit('should update a document if it was found and insert otherwise', function (done) {
-            database.findOneAndUpdate('items', {$and: [{foo: 'bar'}]}, {foo: 'bar'}).then(function (document) {
+    it('should find one document, upsert it, and return updated', function (done) {
+        database.open()
+            .then(function () {
+                return database.findOneAndUpdate('items', {foo: 'bar'}, {$set: {foo: 'baz'}}, {
+                    upsert: true,
+                    returnOriginal: false
+                });
+            })
+            .then(function (result) {
+                expect(result).not.toBeNull();
+                expect(result).toEqual(jasmine.objectContaining({foo: 'baz'}));
+            })
+            .then(function () {
+                database.close();
+            })
+            .catch(function (error) {
                 expect(error).toBeNull();
-                expect(document).toBeTruthy();
-                expect(document.foo).toBe('bar');
-                expect(document._id).toBeTruthy();
-                done();
-            }).catch(function (error) {
-                expect(error).toBeUndefined();
+            })
+            .then(function () {
                 done();
             });
-        });
+    });
 
-        afterEach(function (done) {
-            if (typeof Client.connect === 'undefined') {
-                return done();
-            }
-            Client.connect(url, function (error, db) {
-                if (error) {
-                    console.error(error);
-                } else {
-                    if (db.hasOwnProperty('domain')) {
-                        db.dropDatabase(function (error) {
-                            if (error) {
-                                console.log(error);
-                            }
-                            done();
-                        });
-                    }
-                }
+    it('should find one document, update it, and return updated', function (done) {
+        connect()
+            .then(function (db) {
+                return collection(db, 'items');
+            })
+            .then(function (items) {
+                return insertOne(collection, {foo: 'bar'});
+            })
+            .then(function () {
+                database.open()
+            })
+            .then(function () {
+                return database.findOneAndUpdate('items', {foo: 'bar'}, {$set: {foo: 'baz'}}, {
+                    returnOriginal: false,
+                    projection: {foo: 1}
+                });
+            })
+            .then(function (result) {
+                expect(result).toBe({foo: 'bar'});
+            })
+            .then(function () {
+                database.close();
+            })
+            .then(function () {
+                done();
+            })
+            .catch(function (error) {
+                console.log(error);
+                expect(error).toBeNull();
             });
+    });
+
+    xit('should insert a document if it was not found', function (done) {
+        database.findOneAndInsert('items', {$and: [{foo: 'bar'}]}, {foo: 'bar'}).then(function (document) {
+            expect(error).toBeNull();
+            expect(document).toBeTruthy();
+            expect(document.foo).toBe('bar');
+            expect(document._id).toBeTruthy();
+            done();
+        }).catch(function (error) {
+            expect(error).toBeUndefined();
+            done();
         });
     });
+
+    xit('should update a document if it was found and insert otherwise', function (done) {
+        database.findOneAndUpdate('items', {$and: [{foo: 'bar'}]}, {foo: 'bar'}).then(function (document) {
+            expect(error).toBeNull();
+            expect(document).toBeTruthy();
+            expect(document.foo).toBe('bar');
+            expect(document._id).toBeTruthy();
+            done();
+        }).catch(function (error) {
+            expect(error).toBeUndefined();
+            done();
+        });
+    });
+
+    afterEach(function (done) {
+        Client.connect(url, function (error, db) {
+            if (db) {
+                db.dropCollection('items', function () {
+                    console.log('afterEach cleanup');
+                    done();
+                });
+            }
+        });
+    });
+
+    //afterEach(function (done) {
+    //    Client.connect(url, function (error, db) {
+    //        if (error) {
+    //            console.error(error);
+    //        } else {
+    //            if (db.hasOwnProperty('domain')) {
+    //                db.dropDatabase(function (error) {
+    //                    if (error) {
+    //                        console.log(error);
+    //                    }
+    //                    done();
+    //                });
+    //            }
+    //        }
+    //    });
+    //});
 });

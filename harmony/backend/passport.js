@@ -21,7 +21,7 @@ let facebook = (accessToken, refreshToken, profile, done) => {
     });
 };
 
-module.exports = (passport, db) => {
+module.exports = (passport, db, host = '') => {
     database = db;
 
     passport.serializeUser((user, done) => {
@@ -43,6 +43,6 @@ module.exports = (passport, db) => {
     passport.use(new FacebookStrategy({
         clientID: process.env.FACEBOOK_APP_ID,
         clientSecret: process.env.FACEBOOK_APP_SECRET,
-        callbackURL: '/auth/facebook/callback'
+        callbackURL: `${host}/auth/facebook/callback`
     }, facebook));
 };
