@@ -17,9 +17,7 @@ var index = require('./routes/index'),
 
 var database = new Database(MongoClient, process.env.MONGODB);
 
-Database.open();
-
-require('./modules/passport')(passport, database);
+require('./modules/passport')(passport, database, process.env.HOST);
 
 function authorize(req, res, next) {
     if (req.isAuthenticated()) {
@@ -45,14 +43,23 @@ var production = app.get('env') !== 'development';
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
+app.disable('etag');
+
 app.use(favicon(path.join(__dirname, 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
-app.use(session({secret: 'coin-stack', store: new RedisStore(options), secure: production}));
+app.use(session({
+    secret: 'coin-stack',
+    store: new RedisStore(options),
+    secure: production,
+    resave: true,
+    saveUninitialized: true
+}));
 if (app.get('env') === 'development') {
     app.use(express.static(path.join(__dirname, 'build')));
+    app.use(express.static(path.join(__dirname, 'assets')));
     app.use(express.static(path.join(__dirname, 'bower_components')));
 } else {
     app.use(express.static(path.join(__dirname, 'public')));

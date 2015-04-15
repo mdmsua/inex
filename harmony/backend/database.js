@@ -44,12 +44,10 @@ let insertOneInternal = (collection, document, options = null) =>
 
 let findOneAndUpdateInternal = (collection, filter, update, options = {}) =>
     new Promise((resolve, reject) => {
-        console.log(filter, update);
         collection.findOneAndUpdate(filter, update, options, (error, result) => {
             if (error) {
                 reject(error);
             } else {
-                console.log(result);
                 resolve(result);
             }
         });

@@ -10,15 +10,25 @@ let facebook = (accessToken, refreshToken, profile, done) => {
     delete profile._json;
     var provider = profile.provider,
         query = {},
-        setop = {};
+        setop = {},
+        projection = {};
     setop[provider] = profile;
+    projection[provider] = '1';
     query[provider] = {};
     query[provider]['id'] = profile.id;
-    database.findOneAndUpdate('users', query, {$set: setop}).then((user) => {
-        done(null, user ? user[provider] : null);
-    }).catch((error) => {
-        done(error);
-    });
+    database.open()
+        .then(() => database.findOneAndUpdate('users', query, {$set: setop}, {
+            returnOriginal: false,
+            upsert: true,
+            projection: projection
+        }))
+        .then(user => {
+            done(null, user[provider]);
+        })
+        .then(() => database.close())
+        .catch(error => {
+            done(error);
+        });
 };
 
 module.exports = (passport, db, host = '') => {
@@ -33,11 +43,15 @@ module.exports = (passport, db, host = '') => {
             provider = parts[0],
             query = {};
         query[`${provider}.id`] = parts[1];
-        db.findOne('users', query).then((user) => {
-            done(null, user ? user[provider] : null);
-        }).catch((error) => {
-            done(error);
-        });
+        db.open()
+            .then(() => db.findOne('users', query))
+            .then(user => {
+                done(null, user ? user[provider] : null);
+            })
+            .then(() => db.close())
+            .catch(error => {
+                done(error);
+            });
     });
 
     passport.use(new FacebookStrategy({
