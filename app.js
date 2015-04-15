@@ -9,12 +9,10 @@ var express = require('express'),
     redis = require('redis'),
     RedisStore = require('connect-redis')(session),
     passport = require('passport'),
-//debug = require('debug')('expenses:server'),
     MongoClient = require('mongodb').MongoClient,
     Database = require('./modules/database');
 
 var index = require('./routes/index'),
-    template = require('./routes/template'),
     auth = require('./routes/auth');
 
 var database = new Database(MongoClient, process.env.MONGODB);
@@ -32,9 +30,7 @@ function authorize(req, res, next) {
 
 var app = express(),
     options = {
-        client: redis.createClient(),
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
+        client: redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST, {}),
         pass: process.env.REDIS_PASS,
         prefix: 'session:'
     };
@@ -44,6 +40,8 @@ function env(req, res, next) {
     next();
 }
 
+var production = app.get('env') !== 'development';
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
@@ -52,7 +50,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
-app.use(session({secret: 'coin-stack', store: new RedisStore(options)}));
+app.use(session({secret: 'coin-stack', store: new RedisStore(options), secure: production}));
 if (app.get('env') === 'development') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.use(express.static(path.join(__dirname, 'bower_components')));
