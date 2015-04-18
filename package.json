@@ -54,6 +54,6 @@
   },
   "homepage": "https://github.com/mdmsua/expenses",
   "engines": {
-    "node": "0.12.0"
+    "node": "0.12.2"
   }
 }
