@@ -6,8 +6,7 @@ var express = require('express'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     session = require('express-session'),
-    redis = require('redis'),
-    RedisStore = require('connect-redis')(session),
+    MongoStore = require('connect-mongo')(session),
     passport = require('passport'),
     MongoClient = require('mongodb').MongoClient,
     Database = require('./modules/database');
@@ -28,9 +27,7 @@ function authorize(req, res, next) {
 
 var app = express(),
     options = {
-        client: redis.createClient(process.env.REDIS_PORT, process.env.REDIS_HOST, {}),
-        pass: process.env.REDIS_PASS,
-        prefix: 'session:'
+        url: process.env.MONGODB
     };
 
 function env(req, res, next) {
@@ -52,10 +49,10 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(session({
     secret: 'coin-stack',
-    store: new RedisStore(options),
+    store: new MongoStore(options),
     secure: production,
-    resave: true,
-    saveUninitialized: true
+    resave: false,
+    saveUninitialized: false
 }));
 if (app.get('env') === 'development') {
     app.use(express.static(path.join(__dirname, 'build')));
