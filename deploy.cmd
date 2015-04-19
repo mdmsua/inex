@@ -103,6 +103,10 @@ echo Cleaning node_modules.
 rmdir node_modules /s /q
 echo Cleaning bower_components.
 rmdir bower_components /s /q
+echo Cleaning modules.
+rmdir modules /s /q
+echo Cleaning public.
+rmdir public /s /q
 echo Running npm cache clean.
 call :ExecuteCmd !NPM_CMD! cache clean
 IF !ERRORLEVEL! NEQ 0 goto error
@@ -111,26 +115,16 @@ popd
 :: 4. Install npm packages
 IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
   pushd "%DEPLOYMENT_TARGET%"
-  call :ExecuteCmd !NPM_CMD! install --development
+  call :ExecuteCmd !NPM_CMD! install --production
   IF !ERRORLEVEL! NEQ 0 goto error
   popd
 )
 
-:: 5. Install bower packages
-IF EXIST "%DEPLOYMENT_TARGET%\bower.json" (
-  pushd "%DEPLOYMENT_TARGET%"
-  call :ExecuteCmd "%NODE_EXE%" node_modules\bower\bin\bower install
-  IF !ERRORLEVEL! NEQ 0 goto error
-  popd
-)
-
-:: 6. Run grunt
-IF EXIST "%DEPLOYMENT_TARGET%\Gruntfile.js" (
-  pushd "%DEPLOYMENT_TARGET%"
-  call :ExecuteCmd "%NODE_EXE%" node_modules\grunt-cli\bin\grunt
-  IF !ERRORLEVEL! NEQ 0 goto error
-  popd
-)
+:: 5. Run babel
+pushd "%DEPLOYMENT_TARGET%"
+call :ExecuteCmd "%NODE_EXE%" node_modules\babel\bin\babel harmony\backend --out-dir modules
+IF !ERRORLEVEL! NEQ 0 goto error
+popd
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 

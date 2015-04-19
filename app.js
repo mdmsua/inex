@@ -58,8 +58,6 @@ if (app.get('env') === 'development') {
     app.use(express.static(path.join(__dirname, 'build')));
     app.use(express.static(path.join(__dirname, 'assets')));
     app.use(express.static(path.join(__dirname, 'bower_components')));
-} else {
-    app.use(express.static(path.join(__dirname, 'public')));
 }
 
 app.use(passport.initialize());

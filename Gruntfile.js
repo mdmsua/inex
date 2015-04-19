@@ -4,9 +4,7 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         clean: {
-            all: ['public', 'modules'],
-            public: ['public'],
-            modules: ['modules']
+            all: ['public', 'build']
         },
         concat: {
             js: {
@@ -14,21 +12,21 @@ module.exports = function (grunt) {
                 dest: 'build/js/expenses.js'
             },
             css: {
-                src: ['assets/css/paper.css'],
+                src: ['assets/css/*.css'],
                 dest: 'build/css/expenses.css'
             }
         },
         uglify: {
             app: {
                 src: 'build/js/expenses.js',
-                dest: 'public/js/expenses.min.js'
+                dest: 'build/js/expenses.min.js'
             }
         },
         cssmin: {
             main: {
                 files: {
-                    'public/css/landing.min.css': 'assets/css/landing.css',
-                    'public/css/expenses.min.css': 'build/css/expenses.css'
+                    'build/css/landing.min.css': 'assets/css/landing.css',
+                    'build/css/expenses.min.css': 'build/css/expenses.css'
                 }
             }
         },
@@ -53,6 +51,14 @@ module.exports = function (grunt) {
                     },
                     {
                         expand: true, flatten: true, dest: 'public/img', filter: 'isFile',
+                        src: ['assets/img/**']
+                    }
+                ]
+            },
+            images: {
+                files: [
+                    {
+                        expand: true, flatten: true, dest: 'build/img', filter: 'isFile',
                         src: ['assets/img/**']
                     }
                 ]
@@ -149,6 +155,39 @@ module.exports = function (grunt) {
                     specFolders: ['specs/backend']
                 }
             }
+        },
+        'azure-blob': {
+            options: {
+                containerName: 'public',
+                containerDelete: false,
+                metadata: {cacheControl: 'public, max-age=31556926'},
+                gzip: true,
+                copySimulation: false
+            },
+            css: {
+                files: [{
+                    expand: true,
+                    cwd: 'build/css',
+                    dest: 'css',
+                    src: ['*.min.css']
+                }]
+            },
+            js: {
+                files: [{
+                    expand: true,
+                    cwd: 'build/js',
+                    dest: 'js',
+                    src: ['*.min.js']
+                }]
+            },
+            img: {
+                files: [{
+                    expand: true,
+                    cwd: 'build/img',
+                    dest: 'img',
+                    src: ['*.*']
+                }]
+            }
         }
     });
 
@@ -163,7 +202,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-cssmin');
     grunt.loadNpmTasks('grunt-babel');
     grunt.loadNpmTasks('grunt-jasmine-node');
+    grunt.loadNpmTasks('grunt-azure-blob');
 
     grunt.registerTask('default', ['clean:all', 'concat', 'uglify', 'cssmin', 'copy:main', 'babel']);
+    grunt.registerTask('build', ['clean', 'concat', 'uglify', 'cssmin', 'copy:images']);
     grunt.registerTask('test', ['jasmine_node']);
 };

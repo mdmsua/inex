@@ -4,10 +4,7 @@ html(lang='en')
         meta(charset='utf-8')
         meta(http-equiv='X-UA-Compatible', content='IE=edge')
         meta(name='viewport', content='width=device-width, initial-scale=1')
-        if dev
-            link(rel='stylesheet', href='css/expenses.css')
-        else
-            link(rel='stylesheet', href='css/expenses.min.css')
+        link(rel='stylesheet', type='text/css', href='//maxcdn.bootstrapcdn.com/bootswatch/3.3.4/paper/bootstrap.min.css')
         title= title
     body
         nav.navbar.navbar-default
@@ -19,4 +16,4 @@ html(lang='en')
         if dev
             script(src='js/expenses.js')
         else
-            script(src='js/expenses.min.js')
+            script(src='//az750101.vo.msecnd.net/public/js/expenses.min.js')
