@@ -3,7 +3,7 @@
 var Q = require('Q'),
     Database = require('../../modules/database'),
     Client = process.env.TEST === 'integration' ? require('mongodb').MongoClient : require('./mocks/client.mock'),
-    url = 'mongodb://localhost:27017/expenses-test';
+    url = 'mongodb://localhost:27017/test';
 
 function connect() {
     var deferred = Q.defer();
@@ -33,6 +33,18 @@ function collection(db, name) {
 function insertOne(collection, item) {
     var deferred = Q.defer();
     collection.insertOne(item, function (error) {
+        if (error) {
+            deferred.reject(error);
+        } else {
+            deferred.resolve();
+        }
+    });
+    return deferred.promise;
+}
+
+function insertMany(collection, items) {
+    var deferred = Q.defer();
+    collection.insertMany(items, function (error) {
         if (error) {
             deferred.reject(error);
         } else {
@@ -74,7 +86,7 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
                 return insertOne(collection, {foo: 'bar'});
             })
             .then(function () {
-                return database.open()
+                return database.open();
             })
             .then(function () {
                 return database.findOne('items', {foo: 'bar'});
@@ -101,10 +113,10 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
                 return insertOne(collection, {foo: 'bar'});
             })
             .then(function () {
-                return database.open()
+                return database.open();
             })
             .then(function () {
-                return database.findOne('items', {foo: 'baz'})
+                return database.findOne('items', {foo: 'baz'});
             })
             .then(function (document) {
                 expect(document).toBeNull();
@@ -120,13 +132,13 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
     it('should insert one document to a collection', function (done) {
         database.open()
             .then(function () {
-                return database.insertOne('items', {foo: 'bar'})
+                return database.insertOne('items', {foo: 'bar'});
             })
             .then(function (document) {
                 expect(document).toEqual(jasmine.objectContaining({foo: 'bar'}));
             })
             .then(function () {
-                database.close();
+                return database.close();
             })
             .then(function () {
                 done();
@@ -136,13 +148,13 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
     it('should insert one document to a collection without write concern', function (done) {
         database.open()
             .then(function () {
-                return database.insertOneQuick('items', {foo: 'bar'})
+                return database.insertOneQuick('items', {foo: 'bar'});
             })
             .then(function (result) {
                 expect(typeof result).toBe('boolean');
             })
             .then(function () {
-                database.close();
+                return database.close();
             })
             .then(function () {
                 done();
@@ -158,7 +170,7 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
                 expect(result).toBeNull();
             })
             .then(function () {
-                database.close();
+                return database.close();
             })
             .then(function () {
                 done();
@@ -177,7 +189,7 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
                 expect(result).toBeNull();
             })
             .then(function () {
-                database.close();
+                return database.close();
             })
             .catch(function (error) {
                 expect(error).toBeNull();
@@ -200,7 +212,7 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
                 expect(result).toEqual(jasmine.objectContaining({foo: 'baz'}));
             })
             .then(function () {
-                database.close();
+                return database.close();
             })
             .catch(function (error) {
                 expect(error).toBeNull();
@@ -216,10 +228,10 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
                 return collection(db, 'items');
             })
             .then(function (items) {
-                return insertOne(collection, {foo: 'bar'});
+                return insertOne(items, {foo: 'bar'});
             })
             .then(function () {
-                database.open()
+                return database.open();
             })
             .then(function () {
                 return database.findOneAndUpdate('items', {foo: 'bar'}, {$set: {foo: 'baz'}}, {
@@ -228,17 +240,49 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
                 });
             })
             .then(function (result) {
-                expect(result).toBe({foo: 'bar'});
+                expect(result).toEqual(jasmine.objectContaining({foo: 'baz'}));
             })
             .then(function () {
-                database.close();
+                return database.close();
             })
             .then(function () {
                 done();
             })
             .catch(function (error) {
-                console.log(error);
-                expect(error).toBeNull();
+                expect(error.message).toBeUndefined();
+                done();
+            });
+    });
+
+    it('should find documents', function (done) {
+        connect()
+            .then(function (db) {
+                return collection(db, 'items');
+            })
+            .then(function (items) {
+                return insertMany(items, [{foo: 'bar'}, {foo: 'baz'}, {foo: 'bar'}]);
+            })
+            .then(function () {
+                return database.open();
+            })
+            .then(function () {
+                return database.find('items', {foo: 'bar'});
+            })
+            .then(function (result) {
+                expect(result.length).toEqual(2);
+                expect(result.every(function (n) {
+                    return n.foo === 'bar';
+                })).toBeTruthy();
+            })
+            .then(function () {
+                return database.close();
+            })
+            .then(function () {
+                done();
+            })
+            .catch(function (error) {
+                expect(error.message).toBeUndefined();
+                done();
             });
     });
 

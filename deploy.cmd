@@ -107,6 +107,8 @@ echo Cleaning modules.
 rmdir modules /s /q
 echo Cleaning public.
 rmdir public /s /q
+echo Cleaning routes.
+rmdir routes /s /q
 echo Running npm cache clean.
 call :ExecuteCmd !NPM_CMD! cache clean
 IF !ERRORLEVEL! NEQ 0 goto error
@@ -115,6 +117,7 @@ popd
 :: 4. Install npm packages
 IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
   pushd "%DEPLOYMENT_TARGET%"
+  echo Installing node_modules.
   call :ExecuteCmd !NPM_CMD! install --production
   IF !ERRORLEVEL! NEQ 0 goto error
   popd
@@ -122,7 +125,8 @@ IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
 
 :: 5. Run babel
 pushd "%DEPLOYMENT_TARGET%"
-call :ExecuteCmd "%NODE_EXE%" node_modules\babel\bin\babel harmony\backend --out-dir modules
+echo Compile Harmony.
+call :ExecuteCmd "%NODE_EXE%" node_modules\babel\bin\babel harmony --out-dir .
 IF !ERRORLEVEL! NEQ 0 goto error
 popd
 

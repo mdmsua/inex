@@ -9,12 +9,11 @@ var express = require('express'),
     MongoStore = require('connect-mongo')(session),
     passport = require('passport'),
     MongoClient = require('mongodb').MongoClient,
-    Database = require('./modules/database');
+    Database = require('./modules/database'),
+    database = new Database(MongoClient, process.env.MONGODB);
 
-var index = require('./routes/index'),
+var index = require('./routes/index')(database),
     auth = require('./routes/auth');
-
-var database = new Database(MongoClient, process.env.MONGODB);
 
 require('./modules/passport')(passport, database, process.env.HOST);
 

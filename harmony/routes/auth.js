@@ -1,22 +1,22 @@
 'use strict';
 
-var router = require('express').Router(),
+let router = require('express').Router(),
     passport = require('passport');
 
-var logout = function logout(req, res) {
+let logout = (req, res) => {
     if (req.isAuthenticated()) {
         req.logout();
     }
     res.redirect('/');
 };
 
-var failure = function failure(req, res) {
-    res.render('failure', { title: 'Authentication failed' });
+let failure = (req, res) => {
+    res.render('failure', {title: 'Authentication failed'});
 };
 
-var facebook = passport.authenticate('facebook', { scope: ['email', 'user_about_me'] });
+let facebook = passport.authenticate('facebook', {scope: ['email', 'user_about_me']});
 
-var facebookCallback = passport.authenticate('facebook', {
+let facebookCallback = passport.authenticate('facebook', {
     successRedirect: '/',
     failureRedirect: '/auth/failure'
 });
@@ -27,4 +27,3 @@ router.get('/logout', logout);
 router.get('/failure', failure);
 
 module.exports = router;
-//# sourceMappingURL=auth.js.map
