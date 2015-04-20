@@ -36,8 +36,14 @@ public/**
 # Build
 build
 
-# Babel transpiled modules
+# Compiled modules and routes
 modules
+routes
+
+!harmony/**
 
 # Components
 components
+
+# DS_Store
+.DS_Store
