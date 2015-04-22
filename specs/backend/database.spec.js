@@ -1,5 +1,5 @@
 'use strict';
-/* globals describe, it, expect, beforeEach, afterEach */
+/* globals describe, it, expect, beforeEach, afterEach, jasmine, xit */
 var Q = require('Q'),
     Database = require('../../modules/database'),
     Client = process.env.TEST === 'integration' ? require('mongodb').MongoClient : require('./mocks/client.mock'),
@@ -62,7 +62,6 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
         Client.connect(url, function (error, db) {
             if (db) {
                 db.dropCollection('items', function () {
-                    console.log('beforeEach cleanup');
                     done();
                 });
             }
@@ -80,7 +79,7 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
     it('should find a document in a collection', function (done) {
         connect()
             .then(function (db) {
-                return collection(db, 'items')
+                return collection(db, 'items');
             })
             .then(function (collection) {
                 return insertOne(collection, {foo: 'bar'});
@@ -107,7 +106,7 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
     it('should not find a document in a collection', function (done) {
         connect()
             .then(function (db) {
-                return collection(db, 'items')
+                return collection(db, 'items');
             })
             .then(function (collection) {
                 return insertOne(collection, {foo: 'bar'});
@@ -288,7 +287,6 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
 
     xit('should insert a document if it was not found', function (done) {
         database.findOneAndInsert('items', {$and: [{foo: 'bar'}]}, {foo: 'bar'}).then(function (document) {
-            expect(error).toBeNull();
             expect(document).toBeTruthy();
             expect(document.foo).toBe('bar');
             expect(document._id).toBeTruthy();
@@ -301,7 +299,6 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
 
     xit('should update a document if it was found and insert otherwise', function (done) {
         database.findOneAndUpdate('items', {$and: [{foo: 'bar'}]}, {foo: 'bar'}).then(function (document) {
-            expect(error).toBeNull();
             expect(document).toBeTruthy();
             expect(document.foo).toBe('bar');
             expect(document._id).toBeTruthy();
@@ -316,7 +313,6 @@ describe((process.env.TEST === 'integration' ? '(Integration)' : '(Unit)') + ' D
         Client.connect(url, function (error, db) {
             if (db) {
                 db.dropCollection('items', function () {
-                    console.log('afterEach cleanup');
                     done();
                 });
             }

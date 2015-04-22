@@ -11,6 +11,18 @@ html(lang='en')
             div.container
                 div.navbar-header
                     a.navbar-brand(href='/') Expenses
+                div.navbar-collapse.collapse
+                    ul.nav.navbar-nav.navbar-right
+                        li.dropdown
+                            a(href, data-toggle='dropdown').dropdown-toggle
+                                span.glyphicon.glyphicon-user
+                                | Hello
+                                b.caret
+                            ul.dropdown-menu
+                                li
+                                    a(href='/auth/logout')
+                                        span.glyphicon.glyphicon-off
+                                        | Logout
         main.container
             block content
         if dev

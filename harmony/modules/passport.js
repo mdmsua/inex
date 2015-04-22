@@ -16,7 +16,7 @@ let facebook = (accessToken, refreshToken, profile, done) => {
     projection[provider] = 1;
     projection._id = 1;
     query[provider] = {};
-    query[provider]['id'] = profile.id;
+    query[provider].id = profile.id;
     database.open()
         .then(() => database.findOneAndUpdate('users', query, {$set: setop}, {
             returnOriginal: false,

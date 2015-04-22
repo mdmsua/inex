@@ -61,7 +61,7 @@ let findInternal = (collection, query) =>
             } else {
                 resolve(documents);
             }
-        })
+        });
     });
 
 class Database {

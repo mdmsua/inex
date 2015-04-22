@@ -12,8 +12,9 @@ var express = require('express'),
     Database = require('./modules/database'),
     database = new Database(MongoClient, process.env.MONGODB);
 
-var index = require('./routes/index')(database),
-    auth = require('./routes/auth');
+var index = require('./routes/index'),
+    auth = require('./routes/auth'),
+    dashboard = require('./routes/dashboard')(database);
 
 require('./modules/passport')(passport, database, process.env.HOST);
 
@@ -64,6 +65,7 @@ app.use(passport.session());
 
 app.use('/', env, index);
 app.use('/auth', auth);
+app.use('/dashboard', authorize, dashboard);
 
 // error handlers
 

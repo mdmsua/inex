@@ -1,21 +1,10 @@
 'use strict';
 
-var router = require('express').Router(),
-    database = undefined;
+var router = require('express').Router();
 
 var index = function index(req, res) {
     if (req.isAuthenticated()) {
-        (function () {
-            var accounts = [];
-            database.open().then(function () {
-                return database.find('accounts', { user_id: req.user._id });
-            }).then(function (result) {
-                accounts = result;
-                database.close();
-            }).then(function () {
-                return res.render('index', { title: 'Expenses', accounts: accounts });
-            });
-        })();
+        res.redirect('/dashboard');
     } else {
         res.render('landing', {
             title: 'Expenses'
@@ -23,9 +12,7 @@ var index = function index(req, res) {
     }
 };
 
-module.exports = function (db) {
-    database = db;
-    router.get('/', index);
-    return router;
-};
+router.get('/', index);
+
+module.exports = router;
 //# sourceMappingURL=index.js.map
