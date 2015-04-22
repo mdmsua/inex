@@ -1,0 +1,24 @@
+extends ../layout
+
+block content
+    header.page-header
+        h1 Create account
+    section.row
+        form(method='post')
+            div.form-group.col-lg-12
+                label(for='name')
+                input.form-control#name(type='text', name='name', required, placeholder='Name')
+            div.form-group.col-lg-12
+                label(for='description')
+                textarea.form-control#description(name='description', placeholder='Description')
+            div.form-group.col-sm-6
+                label(for='amount')
+                input.form-control#amount(type='number', name='amount', required, value='0', placeholder='Amount')
+            div.form-group.col-sm-6
+                label(for='currency')
+                select.form-control#currency(name='currency', required)
+                    - for (var i = 0, currency = currencies.length > 0 ? currencies[0] : null; i < currencies.length; i++, currency = currencies[i])
+                        option(value=currency.number) #{currency.name + ' (' + currency.symbol + ')'}
+            div.form-group.col-lg-12
+                button.btn.btn-primary(type='submit') Create
+                a.btn.btn-default(href='javascript:history.back()') Cancel

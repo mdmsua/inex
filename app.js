@@ -14,16 +14,13 @@ var express = require('express'),
 
 var index = require('./routes/index'),
     auth = require('./routes/auth'),
-    dashboard = require('./routes/dashboard')(database);
+    dashboard = require('./routes/dashboard')(database),
+    account = require('./routes/account')(database);
+
+var authorize = require('./middleware/authorize'),
+    user = require('./middleware/user');
 
 require('./modules/passport')(passport, database, process.env.HOST);
-
-function authorize(req, res, next) {
-    if (req.isAuthenticated()) {
-        return next();
-    }
-    res.redirect('/');
-}
 
 var app = express(),
     options = {
@@ -65,7 +62,8 @@ app.use(passport.session());
 
 app.use('/', env, index);
 app.use('/auth', auth);
-app.use('/dashboard', authorize, dashboard);
+app.use('/dashboard', authorize, user, dashboard);
+app.use('/account', authorize, user, account);
 
 // error handlers
 

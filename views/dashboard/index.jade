@@ -1,8 +1,23 @@
 extends ../layout
 
 block content
-    section.page-header
-        h1 Dashboard
-    section
-        h2 Accounts&nbsp;
-            small #{accounts.length}
+    section.row
+        article.col-lg-12
+            a.btn.btn-lg(href='/account/create')
+                i.fa.fa-money
+                | &nbsp;Create
+    br
+    section.row
+        - for (var i = 0, account = accounts.length > 0 ? accounts[0]: null; i < accounts.length; i++, account = accounts[i])
+            article.col-md-4.col-sm-6
+                div.panel.panel-default.text-center
+                    div.panel-heading
+                        h5 #{account.name}
+                    div.panel-body
+                        h1(class=account.amount > 0 ? 'text-success' : 'text-danger')= account.numeralAmount
+                        br
+                        div.btn-group.btn-group-justified(role='group')
+                            a(href='/account/' + account.id + '/expense').btn.btn-danger
+                                span.glyphicon.glyphicon-minus &nbsp;Expense
+                            a(href='/account/' + account.id + '/income').btn.btn-success
+                                span.glyphicon.glyphicon-plus &nbsp;Income
