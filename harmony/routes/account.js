@@ -1,45 +1,34 @@
 'use strict';
 
-const currencies = [{
-    number: 980,
-    code: 'UAH',
-    name: 'Ukrainian hryvnia',
-    symbol: '₴'
-}, {
-    number: 840,
-    code: 'USD',
-    name: 'United States dollar',
-    symbol: '$'
-}, {
-    number: 978,
-    code: 'EUR',
-    name: 'Euro',
-    symbol: '€'
-}];
-
 let router = require('express').Router(),
-    _ = require('underscore'),
+    currency = require('../modules/currency'),
     database;
 
-let getCreate = (req, res) => {
-    res.render('account/create', {title: 'Create account', currencies: currencies});
+let get = (req, res) => {
+    res.render('account/create', {title: 'Create account', currencies: currency.list});
 };
 
-let postCreate = (req, res) => {
+let post = (req, res) => {
     let account = req.body;
-    account.currency = _.findWhere(currencies, {number: Number(account.currency) });
+    account.currency = Number(account.currency);
     account.user_id = req.user._id;
     account.created = new Date();
-    account.amount = Number.parseInt(account.amount);
+    account.amount = Number.parseFloat(account.amount);
     database.open()
         .then(() => database.insertOne('accounts', account))
         .then(() => database.close())
-        .then(() => res.redirect('/dashboard'));
+        .then(() => res.redirect('/dashboard'))
+        .catch(error => res.render('account/create', {
+            title: 'Create account',
+            currencies: currency.list,
+            error: error.message,
+            model: req.body
+        }));
 };
 
 module.exports = db => {
     database = db;
-    router.get('/create', getCreate);
-    router.post('/create', postCreate);
+    router.get('/create', get);
+    router.post('/create', post);
     return router;
 };

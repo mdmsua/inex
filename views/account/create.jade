@@ -1,24 +1,28 @@
 extends ../layout
 
 block content
-    header.page-header
-        h1 Create account
-    section.row
-        form(method='post')
-            div.form-group.col-lg-12
+    form(method='post')
+        fieldset.row
+            legend.col-lg-12 Create account
+            if error
+                div.form-group.col-lg-12
+                    div.alert.alert-danger(role='alert')
+                        p= error
+            - var vm = model || {}
+            div.form-group.col-sm-4
                 label(for='name')
-                input.form-control#name(type='text', name='name', required, placeholder='Name')
-            div.form-group.col-lg-12
-                label(for='description')
-                textarea.form-control#description(name='description', placeholder='Description')
-            div.form-group.col-sm-6
+                input.form-control#name(type='text', name='name', required, placeholder='Name', value=vm.name)
+            div.form-group.col-sm-4
                 label(for='amount')
-                input.form-control#amount(type='number', name='amount', required, value='0', placeholder='Amount')
-            div.form-group.col-sm-6
+                input.form-control#amount(type='number', name='amount', required, value=vm.amount || 0, placeholder='Amount')
+            div.form-group.col-sm-4
                 label(for='currency')
                 select.form-control#currency(name='currency', required)
                     - for (var i = 0, currency = currencies.length > 0 ? currencies[0] : null; i < currencies.length; i++, currency = currencies[i])
-                        option(value=currency.number) #{currency.name + ' (' + currency.symbol + ')'}
+                        option(value=currency.number, selected=currency.number == vm.currency) #{currency.name + ' (' + currency.symbol + ')'}
+            div.form-group.col-lg-12
+                label(for='description')
+                textarea.form-control#description(name='description', placeholder='Description', value=vm.description)
             div.form-group.col-lg-12
                 button.btn.btn-primary(type='submit') Create
-                a.btn.btn-default(href='javascript:history.back()') Cancel
+                a.btn.btn-default(href='/dashboard') Cancel

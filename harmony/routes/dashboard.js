@@ -1,7 +1,7 @@
 'use strict';
 
 let router = require('express').Router(),
-    numeral = require('numeral'),
+    currency = require('../modules/currency'),
     database;
 
 let index = (req, res) => {
@@ -14,7 +14,7 @@ let index = (req, res) => {
         })
         .then(() => {
             let accs = accounts.map(account => {
-                account.numeralAmount = numeral(account.amount).format('$0,0.00');
+                account.numeralAmount = currency.format(account.amount, account.currency);
                 return account;
             });
             res.render('dashboard/index', {title: 'Expenses', accounts: accs, user: req.user});
