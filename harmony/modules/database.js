@@ -20,9 +20,9 @@ let collectionInternal = (database, name) =>
         }
     });
 
-let findOneInternal = (collection, query) =>
+let findOneInternal = (collection, query, options = {}) =>
     new Promise((resolve, reject) => {
-        collection.findOne(query, (error, document) => {
+        collection.findOne(query, options, (error, document) => {
             if (error) {
                 reject(error);
             } else {
@@ -100,9 +100,9 @@ class Database {
         });
     }
 
-    findOne(collection, query) {
+    findOne(collection, query, options) {
         return collectionInternal(this[db], collection)
-            .then(items => findOneInternal(items, query));
+            .then(items => findOneInternal(items, query, options));
     }
 
     insertOne(collection, document) {

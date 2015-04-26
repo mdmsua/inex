@@ -1,6 +1,6 @@
 'use strict';
 
-let numeral = require('numeral'),
+let accounting = require('accounting'),
     _ = require('underscore');
 
 const currencies = [{
@@ -27,11 +27,9 @@ let currency = {
         return currencies;
     },
     format(number, code) {
-        let lang = _.findWhere(currencies, {number: code});
-        if (lang && lang.language) {
-            numeral.language(lang.language, require(`numeral/languages/${lang.language}`));
-        }
-        return numeral(number).format('$0,0.00');
+        let language = _.findWhere(currencies, {number: code}),
+            symbol = language ? language.symbol : '';
+        return accounting.formatMoney(number, symbol, 2, '.', ',');
     }
 };
 

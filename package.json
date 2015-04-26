@@ -6,6 +6,7 @@
     "start": "node server"
   },
   "dependencies": {
+    "accounting": "^0.4.1",
     "babel": "^5.1.11",
     "body-parser": "^1.12.3",
     "connect-mongo": "^0.8.1",
@@ -16,7 +17,6 @@
     "jade": "~1.9.2",
     "mongodb": "^2.0.27",
     "morgan": "~1.5.2",
-    "numeral": "^1.5.3",
     "passport": "^0.2.1",
     "passport-facebook": "^2.0.0",
     "passport-google": "^0.3.0",

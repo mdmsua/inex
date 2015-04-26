@@ -9,7 +9,7 @@ block content
     br
     section.row
         - for (var i = 0, account = accounts.length > 0 ? accounts[0]: null; i < accounts.length; i++, account = accounts[i])
-            article.col-md-4.col-sm-6
+            article.col-sm-6
                 div.panel.panel-default.text-center
                     div.panel-heading
                         h5 #{account.name}
@@ -17,7 +17,7 @@ block content
                         h1(class=account.amount > 0 ? 'text-success' : 'text-danger')= account.numeralAmount
                         br
                         div.btn-group.btn-group-justified(role='group')
-                            a(href='/account/' + account._id + '/expense').btn.btn-danger
+                            a(href='/account/' + account._id + '/-').btn.btn-danger
                                 span.glyphicon.glyphicon-minus &nbsp;Expense
-                            a(href='/account/' + account._id + '/income').btn.btn-success
+                            a(href='/account/' + account._id + '/+').btn.btn-success
                                 span.glyphicon.glyphicon-plus &nbsp;Income

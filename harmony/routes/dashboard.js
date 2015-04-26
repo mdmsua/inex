@@ -7,7 +7,7 @@ let router = require('express').Router(),
 let index = (req, res) => {
     let accounts = [];
     database.open()
-        .then(() => database.find('accounts', {user_id: req.user._id}))
+        .then(() => database.find('accounts', {user: req.user._id}))
         .then(result => {
             accounts = result;
             database.close();
