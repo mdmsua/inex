@@ -1,35 +1,24 @@
 'use strict';
 
-let accounting = require('accounting'),
+let i18n = require('../modules/i18n'),
     _ = require('underscore');
 
-const currencies = [{
-    number: 980,
-    code: 'UAH',
-    name: 'Ukrainian hryvnia',
-    symbol: '\u20B4',
-    language: 'uk-UA'
-}, {
-    number: 840,
-    code: 'USD',
-    name: 'United States dollar',
-    symbol: '$'
-}, {
-    number: 978,
-    code: 'EUR',
-    name: 'Euro',
-    symbol: '\u20AC',
-    language: 'de'
-}];
+let currencies = require('cldr-data/main/en/currencies.json').main.en.numbers.currencies;
 
 let currency = {
     get list() {
-        return currencies;
+        return Object.keys(currencies).map(key => {
+            let value = currencies[key];
+            return {
+                name: value.displayName,
+                symbol: value.symbol
+            }
+        }).sort((left, right) => left.name.localeCompare(right.name));
     },
     format(number, code) {
-        let language = _.findWhere(currencies, {number: code}),
-            symbol = language ? language.symbol : '';
-        return accounting.formatMoney(number, symbol, 2, '.', ',');
+        let language = currencies[code],
+            symbol = language ? language.symbol : 'USD';
+        return i18n.currencyFormatter(symbol)(number);
     }
 };
 
