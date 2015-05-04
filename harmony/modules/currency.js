@@ -10,15 +10,17 @@ let currency = {
         return Object.keys(currencies).map(key => {
             let value = currencies[key];
             return {
+                key: key,
                 name: value.displayName,
                 symbol: value.symbol
             }
         }).sort((left, right) => left.name.localeCompare(right.name));
     },
+    getOne(key) {
+        return currencies[key];
+    },
     format(number, code) {
-        let language = currencies[code],
-            symbol = language ? language.symbol : 'USD';
-        return i18n.currencyFormatter(symbol)(number);
+        return i18n.currencyFormatter(code)(number);
     }
 };
 

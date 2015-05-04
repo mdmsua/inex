@@ -1,9 +1,12 @@
 'use strict';
 
 let router = require('express').Router(),
+    ObjectID = require('mongodb').ObjectID,
     currency = require('../modules/currency'),
+    i18n = require('../modules/i18n'),
+    Account = require('../modules/account'),
     _ = require('underscore'),
-    database;
+    service;
 
 let get = (req, res) => {
     res.render('account/create', {title: 'Create account', currencies: currency.list});
@@ -14,10 +17,8 @@ let post = (req, res) => {
     account.user = req.user._id;
     account.created = new Date();
     account.amount = Number.parseFloat(account.amount);
-    database.open()
-        .then(() => database.insertOne('accounts', account))
-        .then(() => database.close())
-        .then(() => res.redirect('/dashboard'))
+    service.create(account)
+        .then(res.redirect('/dashboard'))
         .catch(error => res.render('account/create', {
             title: 'Create account',
             currencies: currency.list,
@@ -27,26 +28,20 @@ let post = (req, res) => {
 };
 
 let payments = (req, res) => {
-    let account = req.params.account,
-        user = req.user._id,
-        payments = [],
-        accountCurrency,
-        currencyFormatter;
-    database.open()
-        .then(database.findOne('accounts', {$and: {_id: account, user: user}}, {fields: {currency: 1}}))
-        .then(_account => {
-            accountCurrency = _.findWhere(currency.list, {symbol: _account ? _account.currency : ''});
-            currencyFormatter = currency.currencyFormatter(accountCurrency ? accountCurrency.symbol : 'USD');
-            database.find('payments', {$and: {account: account, user: user}});
-        })
-        .then(values => {
-            payments = values.map(value => {
-                value._amount = currencyFormatter(value.amount);
+    let account = ObjectID(req.params.account),
+        user = req.user._id;
+    service.getCurrency(account, user).then(code => {
+        let currencyFormatter = i18n.currencyFormatter(code);
+        return service.getPayments(account, user).then(data => {
+            let payments = data.map(value => {
+                value.formattedAmount = currencyFormatter(value.amount);
                 return value;
             });
-        })
-        .then(() => database.close())
-        .then(() => res.render('account/payments', {title: 'Payments', payments: payments}));
+            return res.render('account/payments', {
+                title: 'Payments', payments: payments
+            });
+        });
+    });
 };
 
 let income = (req, res) => {
@@ -56,7 +51,7 @@ let expense = (req, res) => {
 };
 
 module.exports = db => {
-    database = db;
+    service = new Account(db);
     router.get('/create', get);
     router.post('/create', post);
     router.get('/:account(\\w{24})', payments);

@@ -14,7 +14,8 @@ block content
                     div.panel-heading
                         h5 #{account.name}
                     div.panel-body
-                        h1(class=account.amount > 0 ? 'text-success' : 'text-danger')= account.numeralAmount
+                        a(href='/account/' + account._id)
+                            h1(class=account.amount > 0 ? 'text-success' : 'text-danger')= account.formattedAmount
                         br
                         div.btn-group.btn-group-justified(role='group')
                             a(href='/account/' + account._id + '/-').btn.btn-danger

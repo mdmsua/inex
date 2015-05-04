@@ -2,28 +2,23 @@
 
 let router = require('express').Router(),
     currency = require('../modules/currency'),
-    database;
+    Account = require('../modules/account'),
+    service;
 
 let index = (req, res) => {
-    let accounts = [];
-    database.open()
-        .then(() => database.find('accounts', {user: req.user._id}))
-        .then(result => {
-            accounts = result;
-            database.close();
-        })
-        .then(() => {
-            let accs = accounts.map(account => {
-                account.numeralAmount = currency.format(account.amount, account.currency);
+    service.getAll(req.user._id)
+        .then(data => {
+            let accounts = data.map(account => {
+                account.formattedAmount = currency.format(account.amount, account.currency);
                 return account;
             });
-            res.render('dashboard/index', {title: 'Expenses', accounts: accs, user: req.user});
+            return res.render('dashboard/index', {title: 'Expenses', accounts: accounts});
         }
     );
 };
 
 module.exports = db => {
-    database = db;
+    service = new Account(db);
     router.get('/', index);
     return router;
 };
