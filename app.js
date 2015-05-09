@@ -8,19 +8,19 @@ var express = require('express'),
     session = require('express-session'),
     MongoStore = require('connect-mongo')(session),
     passport = require('passport'),
-    MongoClient = require('mongodb').MongoClient,
-    Database = require('./modules/database'),
-    database = new Database(MongoClient, process.env.MONGODB);
+    mongoose = require('mongoose');
+
+mongoose.connect(process.env.MONGODB);
 
 var index = require('./routes/index'),
     auth = require('./routes/auth'),
-    dashboard = require('./routes/dashboard')(database),
-    account = require('./routes/account')(database);
+    dashboard = require('./routes/dashboard'),
+    account = require('./routes/account');
 
 var authorize = require('./middleware/authorize'),
     user = require('./middleware/user');
 
-require('./modules/passport')(passport, database, process.env.HOST);
+require('./modules/passport')(passport, process.env.HOST);
 
 var app = express(),
     options = {

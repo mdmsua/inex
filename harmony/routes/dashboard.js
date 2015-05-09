@@ -2,12 +2,13 @@
 
 let router = require('express').Router(),
     currency = require('../modules/currency'),
-    Account = require('../modules/account'),
-    service;
+    Account = require('../modules/account');
 
 let index = (req, res) => {
-    service.getAll(req.user._id)
+    console.log(req.user._id);
+    Account.find({user: req.user._id})
         .then(data => {
+            req.session.accounts = data;
             let accounts = data.map(account => {
                 account.formattedAmount = currency.format(account.amount, account.currency);
                 return account;
@@ -17,8 +18,6 @@ let index = (req, res) => {
     );
 };
 
-module.exports = db => {
-    service = new Account(db);
-    router.get('/', index);
-    return router;
-};
+router.get('/', index);
+
+module.exports = router;

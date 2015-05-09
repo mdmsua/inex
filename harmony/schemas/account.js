@@ -1,0 +1,15 @@
+'use strict';
+
+let mongoose = require('mongoose'),
+    Schema = mongoose.Schema;
+
+let account = new Schema({
+    name: String,
+    description: String,
+    amount: Number,
+    currency: { type: String, minlength: 3, maxlength: 3 },
+    user: Schema.Types.ObjectId,
+    created: { type: Date, default: Date.now }
+});
+
+module.exports = account;
