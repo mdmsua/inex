@@ -1,0 +1,33 @@
+extends ../layout
+
+block content
+    form(method='post')
+        fieldset
+            div.row
+                legend.col-lg-12= title
+            if error
+                div.row
+                    div.form-group.col-lg-12
+                        div.alert.alert-danger(role='alert')
+                            p= error
+            - var vm = model || { }
+            div.row
+                div.form-group.col-sm-4
+                    label(for='date')
+                    input.form-control#date(type='datetime-local', name='date', required, placeholder='Date', value=vm.date)
+                div.form-group.col-sm-4
+                    label(for='amount')
+                    input.form-control#amount(type='number', name='amount', required, value=vm.amount, placeholder='Amount', min=min, max=max)
+                div.form-group.col-sm-4
+                    label(for='category')
+                    select.form-control#category(name='category', required)
+                        - for (var i = 0, category = categories.length > 0 ? categories[0] : null; i < categories.length; i++, category = categories[i])
+                            option(value=category.key, selected=category.key === vm.category) #{category.name}
+            div.row
+                div.form-group.col-lg-12
+                    label(for='description')
+                    textarea.form-control#description(name='description', placeholder='Description', value=vm.description)
+            div.row
+                div.form-group.col-lg-12
+                    button.btn.btn-primary(type='submit') Create
+                    a.btn.btn-default(href='/dashboard') Cancel

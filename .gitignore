@@ -45,5 +45,8 @@ routes
 # Components
 components
 
+# Credentials
+credentials.js
+
 # DS_Store
 .DS_Store

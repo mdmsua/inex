@@ -2,7 +2,7 @@ body {
     font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-weight: 700;
     color: white;
-    background: url('../img/landing.jpg') no-repeat center center fixed;
+    background: url('landing.jpg') no-repeat center center fixed;
     background-size: cover;
     -webkit-background-size: cover;
     -moz-background-size: cover;
