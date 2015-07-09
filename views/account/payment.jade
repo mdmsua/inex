@@ -11,6 +11,7 @@ block content
                         div.alert.alert-danger(role='alert')
                             p= error
             - var vm = model || { }
+            - var accounts = targets || [];
             div.row
                 div.form-group.col-sm-4
                     label(for='date')
@@ -21,8 +22,14 @@ block content
                 div.form-group.col-sm-4
                     label(for='category')
                     select.form-control#category(name='category', required)
-                        - for (var i = 0, category = categories.length > 0 ? categories[0] : null; i < categories.length; i++, category = categories[i])
+                        - for (var i = 0, category = categories.length > 0 ? categories[0] : {}; i < categories.length; i++, category = categories[i])
                             option(value=category.key, selected=category.key === vm.category) #{category.name}
+            div.row#account-row(class=vm.category === 'TRX' ? 'visible' : 'hidden')
+                div.form-group.col-lg-12
+                    label(for='account')
+                    select.form-control#account(name='account')
+                        - for (var i = 0, account = accounts.length > 0 ? accounts[0] : {}; i < accounts.length; i++, account = accounts[i])
+                            option(value=account.id, selected=account.id === (vm.account ? vm.account : '')) #{account.name}
             div.row
                 div.form-group.col-lg-12
                     label(for='description')

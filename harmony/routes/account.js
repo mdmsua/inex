@@ -87,18 +87,20 @@ let payments = (req, res) => {
     let account = req.params.account,
         user = req.user._id,
         currencyFormatter = i18n.currencyFormatter(req.account.currency),
-        dateFormatter = i18n.dateFormatter({ datetime: 'full' });
-    Payment.find({account: account, user: user}).sort('-date').then(data => {
-        let payments = data.map(value => {
-            value.formattedAmount = currencyFormatter(value.amount);
-            value.formattedDate = dateFormatter(value.date);
-            value.category = _.findWhere(categories, { key: value.category }).name;
-            return value;
+        dateFormatter = i18n.dateFormatter({datetime: 'full'});
+    Account.findOne({_id: account, user: user})
+        .select('payments').sort({'payments.date': -1})
+        .then(data => {
+            let payments = data.payments.map(value => {
+                value.formattedAmount = currencyFormatter(value.amount);
+                value.formattedDate = dateFormatter(value.date);
+                value.category = _.findWhere(categories, {key: value.category}).name;
+                return value;
+            });
+            return res.render('account/payments', {
+                title: 'Payments', payments: payments
+            });
         });
-        return res.render('account/payments', {
-            title: 'Payments', payments: payments
-        });
-    });
 };
 
 let income = (req, res) => {
@@ -107,7 +109,7 @@ let income = (req, res) => {
         categories: categories.filter(c => c.income),
         model: {date: moment().format(datetime)},
         min: 1,
-        max: Number.MAX_SAFE_INTEGER
+        max: Number.MAX_VALUE
     });
 };
 
@@ -116,6 +118,12 @@ let expense = (req, res) => {
         title: 'New expense',
         categories: categories.filter(c => !c.income),
         model: {date: moment().format(datetime)},
+        targets: req.session.accounts.filter(account => account._id.toString() !== req.account._id.toString()).map(function (account) {
+            return {
+                id: account._id,
+                name: account.name
+            }
+        }),
         min: 1,
         max: req.account.amount
     });
@@ -124,21 +132,46 @@ let expense = (req, res) => {
 let postIncome = (req, res) => {
     let payment = new Payment(req.body);
     payment.amount = Math.abs(payment.amount);
-    payment.user = req.user._id;
-    payment.account = req.account._id;
-    payment.save()
-        .then(() => Account.findByIdAndUpdate(payment.account, {$inc: {amount: payment.amount}}))
-        .then(() => res.redirect('/dashboard'));
+    Account.findByIdAndUpdate(req.account, {
+        $push: {payments: payment},
+        $inc: {amount: payment.amount}
+    }).then(() => res.redirect('/dashboard'));
+};
+
+let handleTransfer = function (account, body) {
+    let source = new Payment(body),
+        destination = new Payment(body);
+    source.amount = -Math.abs(body.amount);
+    destination.amount = Math.abs(body.amount);
+    destination.account = account;
+    return new Promise((resolve, reject) => Account.collection.bulkWrite([
+        {updateOne: {filter: {_id: account}, update: {$push: {payments: source}, $inc: {amount: source.amount}}}},
+        {updateOne: {filter: {_id: body.account}, update: {$push: {payments: destination}, $inc: {amount: destination.amount}}}}
+    ], (error, result) => {
+        if (error) {
+            reject(error);
+        } else {
+            resolve(result);
+        }
+    }));
+};
+
+let handlePayment = function (account, body) {
+    let payment = new Payment(body);
+    payment.amount = -Math.abs(payment.amount);
+    return Account.findByIdAndUpdate(account, {
+        $push: {payments: payment},
+        $inc: {amount: payment.amount}
+    });
 };
 
 let postExpense = (req, res) => {
-    let payment = new Payment(req.body);
-    payment.amount = -Math.abs(payment.amount);
-    payment.user = req.user._id;
-    payment.account = req.account._id;
-    payment.save()
-        .then(() => Account.findByIdAndUpdate(payment.account, {$inc: {amount: payment.amount}}))
-        .then(() => res.redirect('/dashboard'));
+    let body = req.body;
+    if (body.category === 'TRX') {
+        handleTransfer(req.account, body).then(() => res.redirect('/dashboard'));
+    } else {
+        handlePayment(req.account, body).then(() => res.redirect('/dashboard'));
+    }
 };
 
 router.get('/create', get);

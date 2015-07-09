@@ -1,6 +1,7 @@
 'use strict';
 
 let mongoose = require('mongoose'),
+    payment = require('../schemas/payment'),
     Schema = mongoose.Schema;
 
 let account = new Schema({
@@ -9,7 +10,8 @@ let account = new Schema({
     amount: Number,
     currency: { type: String, minlength: 3, maxlength: 3 },
     user: Schema.Types.ObjectId,
-    created: { type: Date, default: Date.now }
+    created: { type: Date, default: Date.now },
+    payments: [payment]
 });
 
 module.exports = account;

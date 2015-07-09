@@ -8,10 +8,8 @@ let payment = new Schema({
     amount: Number,
     category: String,
     description: String,
-    transfer: {source: Schema.Types.ObjectId, destination: Schema.Types.ObjectId},
-    exchange: {currency: {type: String, minlength: 3, maxlength: 3}, amount: Number},
-    user: Schema.Types.ObjectId,
-    account: Schema.Types.ObjectId
+    account: Schema.Types.ObjectId,
+    exchange: {currency: {type: String, minlength: 3, maxlength: 3}, amount: Number}
 });
 
 module.exports = payment;

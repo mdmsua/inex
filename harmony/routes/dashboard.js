@@ -7,6 +7,7 @@ let router = require('express').Router(),
 let index = (req, res) => {
     console.log(req.user._id);
     Account.find({user: req.user._id})
+        .select('_id name amount currency')
         .then(data => {
             req.session.accounts = data;
             let accounts = data.map(account => {
