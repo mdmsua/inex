@@ -20,7 +20,7 @@ var index = require('./routes/index'),
 var authorize = require('./middleware/authorize'),
     user = require('./middleware/user');
 
-require('./modules/passport')(passport, process.env.HOST);
+require('./models/passport')(passport, process.env.HOST);
 
 var app = express(),
     options = {

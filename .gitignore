@@ -36,12 +36,6 @@ public/**
 # Build
 build
 
-# Compiled modules and routes
-modules
-routes
-
-!harmony/**
-
 # Components
 components
 

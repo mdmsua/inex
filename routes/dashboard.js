@@ -1,8 +1,8 @@
 'use strict';
 
 let router = require('express').Router(),
-    currency = require('../modules/currency'),
-    Account = require('../modules/account');
+    currency = require('./currency'),
+    Account = require('./account');
 
 let index = (req, res) => {
     console.log(req.user._id);

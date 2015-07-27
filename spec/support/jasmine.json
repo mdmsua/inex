@@ -1,9 +1,10 @@
 {
-  "spec_dir": "specs",
+  "spec_dir": "spec",
   "spec_files": [
-    "**/account.spec.js"
+    "**/*.spec.js"
   ],
   "helpers": [
+    "../node_modules/jasmine-es6/lib/install.js",
     "helpers/**/*.js"
   ]
 }

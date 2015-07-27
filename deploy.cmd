@@ -1,9 +1,11 @@
 @if "%SCM_TRACE_LEVEL%" NEQ "4" @echo off
 
-:: ----------------------
+:: --------------------------
 :: KUDU Deployment Script
-:: Version: 0.1.11
-:: ----------------------
+:: Modified to include io.js
+:: by feriese@microsoft.com
+:: Based on version: 0.1.11
+:: --------------------------
 
 :: Prerequisites
 :: -------------
@@ -86,7 +88,7 @@ goto :EOF
 :: ----------
 
 :Deployment
-echo Handling node.js deployment.
+echo Handling deployment.
 
 :: 1. KuduSync
 IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
@@ -94,41 +96,22 @@ IF /I "%IN_PLACE_DEPLOYMENT%" NEQ "1" (
   IF !ERRORLEVEL! NEQ 0 goto error
 )
 
-:: 2. Select node version
-call :SelectNodeVersion
+:: 2. Dowloading io.js
+if not exist "D:\home\site\bin" mkdir D:\home\site\bin
+if not exist "D:\home\site\bin\iojs" mkdir D:\home\site\bin\iojs
+call :ExecuteCmd curl -L -o D:\home\site\bin\iojs\iojs.exe https://iojs.org/dist/latest/win-x64/iojs.exe
+call :ExecuteCmd curl -L -o D:\home\site\bin\iojs\iojs.lib https://iojs.org/dist/latest/win-x64/iojs.lib
 
-:: 3. Clean node and bower packages
-pushd "%DEPLOYMENT_TARGET%"
-echo Cleaning node_modules.
-rmdir node_modules /s /q
-echo Cleaning bower_components.
-rmdir bower_components /s /q
-echo Cleaning modules.
-rmdir modules /s /q
-echo Cleaning public.
-rmdir public /s /q
-echo Cleaning routes.
-rmdir routes /s /q
-echo Running npm cache clean.
-call :ExecuteCmd !NPM_CMD! cache clean
-IF !ERRORLEVEL! NEQ 0 goto error
-popd
+:: 3. Select node version
+call :SelectNodeVersion
 
 :: 4. Install npm packages
 IF EXIST "%DEPLOYMENT_TARGET%\package.json" (
   pushd "%DEPLOYMENT_TARGET%"
-  echo Installing node_modules.
   call :ExecuteCmd !NPM_CMD! install --production
   IF !ERRORLEVEL! NEQ 0 goto error
   popd
 )
-
-:: 5. Run babel
-pushd "%DEPLOYMENT_TARGET%"
-echo Compile Harmony.
-call :ExecuteCmd "%NODE_EXE%" node_modules\babel\bin\babel harmony --out-dir .
-IF !ERRORLEVEL! NEQ 0 goto error
-popd
 
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 

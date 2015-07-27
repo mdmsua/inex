@@ -1,6 +1,6 @@
 'use strict';
 
-let i18n = require('../modules/i18n'),
+let i18n = require('/i18n'),
     _ = require('underscore');
 
 let currencies = require('cldr-data/main/en/currencies.json').main.en.numbers.currencies;
