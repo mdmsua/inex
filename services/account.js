@@ -1,16 +1,29 @@
 "use strict";
 
 let Account = require('../models/account');
-let Payment = require('..models/payment');
+let Payment = require('../models/payment');
 let i18n = require('../models/i18n');
 let _ = require('underscore');
 
 class AccountService {
-    static createAccount(account, user) {
+    constructor(mongo) {
+        this.account = Account(mongo);
+    }
+
+    createAccount(account, user) {
         account.user = user;
         account.created = new Date();
         account.amount = Number.parseFloat(account.amount);
-        return Account.createAccount(account);
+        let that = this;
+        return new Promise(function (resolve, reject) {
+            that.account.create(account, function (error, data) {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(data);
+                }
+            });
+        });
     }
 
     static getPayments(account, user, categories, currency) {

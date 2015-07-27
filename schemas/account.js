@@ -5,7 +5,7 @@ let mongoose = require('mongoose'),
     Schema = mongoose.Schema;
 
 let account = new Schema({
-    name: String,
+    name: { type: String, minlength: 1 },
     description: String,
     amount: Number,
     currency: { type: String, minlength: 3, maxlength: 3 },

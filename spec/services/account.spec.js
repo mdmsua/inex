@@ -1,35 +1,34 @@
-var install = require('jasmine-es6/lib/install');
 var AccountService = require('../../services/account');
 var mongoose = require('mongoose');
 var mockgoose = require('mockgoose');
 var accountService;
+var userid;
 
-install();
-
-describe('Account service', function (done) {
+describe('Account service', function () {
 
     beforeEach(function () {
-        accountService = new AccountService();
-        mockgoose(mongoose);
-        mongoose.connect('mongodb://localhost/test');
+        userid = mongoose.Types.ObjectId();
+        mockgoose(mongoose, true);
+        accountService = new AccountService(mongoose);
     });
 
     afterEach(function () {
         accountService = null;
         mockgoose.reset();
-        mongoose.connection.close();
     });
 
-    it('should create account', function () {
+    it('should create an account', function (done) {
         var account = {
             amount: 1
         };
-        var user = 1;
-        accountService.createAccount(account, user).then(function (data) {
-            expect(account.amount).toBe(data.amount);
+        accountService.createAccount(account, userid).then(function (data) {
+            expect(data.amount).toBe(account.amount);
+            expect(data.name).toBe(account.name);
+            expect(data.user).toBe(userid);
             done();
         }).catch(function (error) {
-            throw error;
+            expect(error).toBeNull();
+            done();
         });
     });
 

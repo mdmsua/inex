@@ -1,6 +1,7 @@
 'use strict';
 
-let mongoose = require('mongoose'),
-    account = require('../schemas/account');
+let account = require('../schemas/account');
 
-module.exports = mongoose.model('accounts', account);
+module.exports = function (mongo) {
+    return mongo.model('accounts', account);
+};
